@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoyalMog — Who Reigns Supreme?</title>
+<meta name="description" content="RoyalMog — vote for the best prince or princess and see live rankings.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=Cormorant+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+:root {
+  --bg:        #0b0b0f;
+  --surface:   #111118;
+  --surface2:  #16161f;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.13);
+  --gold:      #c8a84b;
+  --gold2:     #e3c97a;
+  --text:      #ece8de;
+  --text2:     rgba(236,232,222,0.5);
+  --text3:     rgba(236,232,222,0.28);
+  --tiktok:    #fe2c55;
+  --radius:    12px;
+  --radius-sm: 8px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* grain */
+body::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size:200px; opacity:.35;
+}
+
+.glow-1,.glow-2 { position:fixed; border-radius:50%; pointer-events:none; z-index:0; filter:blur(120px); }
+.glow-1 { width:600px; height:400px; top:-80px; left:-120px; background:radial-gradient(ellipse,rgba(200,168,75,.07) 0%,transparent 70%); }
+.glow-2 { width:500px; height:500px; bottom:-150px; right:-100px; background:radial-gradient(ellipse,rgba(100,80,200,.05) 0%,transparent 70%); }
+
+/* HEADER */
+header { position:relative; z-index:10; text-align:center; padding:3.2rem 2rem 0; }
+
+.header-eyebrow {
+  font-size:10px; font-weight:500; letter-spacing:5px;
+  text-transform:uppercase; color:var(--gold); opacity:.65; margin-bottom:1.4rem;
+}
+
+.header-logo img { max-width:380px; width:85%; display:block; margin:0 auto; filter:drop-shadow(0 2px 30px rgba(200,168,75,.22)); }
+.header-logo .fallback {
+  font-family:'Cormorant SC',serif; font-size:clamp(2.2rem,6vw,3.8rem);
+  font-weight:600; color:var(--gold2); letter-spacing:8px; display:none;
+}
+
+.header-tagline { font-family:'Libre Baskerville',serif; font-style:italic; font-size:15px; color:var(--text2); margin-top:.5rem; }
+.header-rule { width:60px; height:1px; margin:1.6rem auto 0; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+
+/* TABS */
+.tabs-wrap {
+  position:sticky; top:0; z-index:100;
+  background:rgba(11,11,15,.92); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border); margin-top:2rem;
+}
+.tabs { max-width:880px; margin:0 auto; display:flex; padding:0 2rem; }
+.tab {
+  font-size:11px; font-weight:500; letter-spacing:3.5px; text-transform:uppercase;
+  color:var(--text3); padding:1.1rem 1.5rem; cursor:pointer; border:none; background:none;
+  position:relative; transition:color .2s;
+}
+.tab::after {
+  content:''; position:absolute; bottom:-1px; left:0; right:0;
+  height:2px; background:var(--gold); transform:scaleX(0); transition:transform .25s ease;
+}
+.tab:hover { color:var(--text2); }
+.tab.active { color:var(--gold2); }
+.tab.active::after { transform:scaleX(1); }
+
+/* PANELS */
+.panels { max-width:880px; margin:0 auto; padding:0 2rem 5rem; }
+.panel { display:none; padding-top:2.8rem; }
+.panel.active { display:block; animation:fadeUp .32s ease both; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+
+/* SECTION HEAD */
+.section-head { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2rem; }
+.section-title { font-family:'Cormorant SC',serif; font-size:24px; font-weight:500; letter-spacing:3px; }
+.section-meta  { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); }
+
+/* PODIUM */
+.podium { display:grid; grid-template-columns:1fr 1.1fr 1fr; gap:10px; margin-bottom:2.2rem; align-items:end; }
+
+.pod-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:1.5rem .8rem 1.2rem; text-align:center; transition:border-color .2s;
+}
+.pod-card.p1 { border-color:rgba(200,168,75,.38); background:linear-gradient(170deg,#15141e,#111118); box-shadow:0 0 50px rgba(200,168,75,.07); }
+
+.pod-medal { font-size:10px; letter-spacing:3px; text-transform:uppercase; margin-bottom:.75rem; }
+.pod-card.p1 .pod-medal { color:var(--gold); }
+.pod-card.p2 .pod-medal { color:#9a9aaa; }
+.pod-card.p3 .pod-medal { color:#9a7a58; }
+
+.pod-glyph { font-size:26px; display:block; margin-bottom:6px; line-height:1; }
+.pod-card.p1 .pod-glyph { font-size:32px; }
+
+.pod-type { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:3px; }
+.pod-name { font-family:'Libre Baskerville',serif; font-size:15px; font-weight:700; color:var(--text); margin-bottom:.5rem; }
+.pod-card.p1 .pod-name { font-size:18px; color:var(--gold2); }
+.pod-votes { font-family:'Cormorant SC',serif; font-size:20px; color:var(--text2); }
+.pod-card.p1 .pod-votes { font-size:26px; color:var(--gold2); }
+.pod-pct { font-size:10px; color:var(--text3); margin-top:1px; margin-bottom:.7rem; }
+
+.pod-tt {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:10px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--tiktok); background:rgba(254,44,85,.1); border:1px solid rgba(254,44,85,.25);
+  padding:4px 10px; border-radius:20px; text-decoration:none;
+  transition:background .18s, border-color .18s;
+}
+.pod-tt:hover { background:rgba(254,44,85,.2); border-color:rgba(254,44,85,.5); }
+.pod-tt svg { width:10px; height:10px; fill:currentColor; }
+
+/* RANK LIST */
+.rank-list { display:flex; flex-direction:column; gap:3px; }
+
+.rank-row {
+  display:grid; grid-template-columns:34px 1fr 110px 46px 80px;
+  align-items:center; gap:12px; padding:9px 14px;
+  border-radius:var(--radius-sm); background:var(--surface); border:1px solid transparent;
+  transition:background .15s,border-color .15s; animation:rowIn .4s ease both;
+}
+@keyframes rowIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:none} }
+.rank-row:hover { background:var(--surface2); border-color:var(--border); }
+
+.rank-num { font-family:'Cormorant SC',serif; font-size:14px; color:var(--text3); text-align:center; }
+.rank-name { font-size:13px; font-weight:400; color:var(--text); }
+.rank-type { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin-top:1px; }
+.rank-bar  { display:flex; align-items:center; gap:6px; }
+.rank-track { flex:1; height:3px; background:rgba(255,255,255,.05); border-radius:2px; overflow:hidden; }
+.rank-fill  { height:3px; background:linear-gradient(90deg,var(--gold),var(--gold2)); border-radius:2px; transition:width .9s cubic-bezier(.4,0,.2,1); }
+.rank-pct  { font-size:11px; color:var(--text3); font-weight:500; min-width:32px; text-align:right; }
+
+.rank-tt {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:9.5px; font-weight:500; letter-spacing:1px; text-transform:uppercase;
+  color:var(--tiktok); background:rgba(254,44,85,.08); border:1px solid rgba(254,44,85,.2);
+  padding:3px 9px; border-radius:20px; text-decoration:none; white-space:nowrap;
+  transition:background .18s, border-color .18s;
+}
+.rank-tt:hover { background:rgba(254,44,85,.18); border-color:rgba(254,44,85,.45); }
+.rank-tt svg { width:9px; height:9px; fill:currentColor; flex-shrink:0; }
+
+.empty-state { text-align:center; padding:4rem 2rem; color:var(--text3); font-size:14px; font-style:italic; font-family:'Libre Baskerville',serif; }
+.empty-state .e-crown { font-size:32px; display:block; margin-bottom:1rem; opacity:.25; }
+
+/* LOADING STATE */
+.loading-state { text-align:center; padding:3rem 2rem; color:var(--text3); font-size:13px; letter-spacing:2px; text-transform:uppercase; }
+.spinner {
+  width:24px; height:24px; border:2px solid var(--border2); border-top-color:var(--gold);
+  border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 1rem;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* VOTE PANEL */
+.vote-head { margin-bottom:2.2rem; }
+.vote-title { font-family:'Cormorant SC',serif; font-size:24px; font-weight:500; letter-spacing:3px; margin-bottom:.4rem; }
+.vote-sub   { font-family:'Libre Baskerville',serif; font-style:italic; font-size:14px; color:var(--text2); }
+
+/* SEARCH */
+.search-wrap { position:relative; margin-bottom:1.8rem; }
+.search-ico  { position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--text3); pointer-events:none; }
+.search-ico svg { display:block; width:16px; height:16px; }
+.search-input {
+  width:100%; background:var(--surface); border:1px solid var(--border2);
+  border-radius:var(--radius); color:var(--text);
+  font-family:'DM Sans',sans-serif; font-size:14px; font-weight:300;
+  padding:.88rem 1rem .88rem 42px; outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.search-input::placeholder { color:var(--text3); }
+.search-input:focus { border-color:rgba(200,168,75,.45); box-shadow:0 0 0 3px rgba(200,168,75,.07); }
+
+/* CANDIDATE GRID */
+.cand-sec-label {
+  font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--text3);
+  margin:2rem 0 .9rem; padding-bottom:.5rem; border-bottom:1px solid var(--border);
+}
+
+.cand-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:9px; }
+
+.cand-card {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:1.2rem .85rem .9rem; cursor:pointer; text-align:center;
+  transition:background .16s,border-color .16s,transform .16s,box-shadow .16s;
+  user-select:none; position:relative; overflow:hidden;
+}
+.cand-card:hover { background:var(--surface2); border-color:var(--border2); transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.32); }
+.cand-card.selected { background:#161521; border-color:var(--gold); box-shadow:0 0 0 1px var(--gold),0 6px 24px rgba(200,168,75,.13); transform:translateY(-2px); }
+.cand-card.hidden { display:none; }
+
+.cand-check {
+  position:absolute; top:8px; right:9px; width:16px; height:16px; border-radius:50%;
+  background:var(--gold); display:flex; align-items:center; justify-content:center;
+  opacity:0; transform:scale(.5); transition:opacity .17s,transform .17s;
+}
+.cand-check svg { width:9px; height:9px; stroke:#0b0b0f; stroke-width:2.5; fill:none; }
+.cand-card.selected .cand-check { opacity:1; transform:scale(1); }
+
+.cand-glyph { font-size:22px; display:block; margin-bottom:6px; line-height:1; }
+.cand-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:3px; }
+.cand-name  { font-family:'Libre Baskerville',serif; font-size:13px; font-weight:700; color:var(--text); line-height:1.25; margin-bottom:8px; }
+
+/* TikTok button on candidate card */
+.cand-tt {
+  display:inline-flex; align-items:center; justify-content:center; gap:4px;
+  font-size:9px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--tiktok); background:rgba(254,44,85,.08); border:1px solid rgba(254,44,85,.2);
+  padding:3px 9px; border-radius:20px; text-decoration:none;
+  transition:background .18s,border-color .18s; position:relative; z-index:5;
+}
+.cand-tt:hover { background:rgba(254,44,85,.2); border-color:rgba(254,44,85,.45); }
+.cand-tt svg { width:9px; height:9px; fill:currentColor; }
+
+.no-results { text-align:center; padding:2.5rem; color:var(--text3); font-style:italic; font-family:'Libre Baskerville',serif; display:none; }
+
+/* VOTE ACTION */
+.vote-action { display:flex; align-items:center; gap:14px; margin-top:2.2rem; flex-wrap:wrap; }
+
+.btn-primary {
+  font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+  background:var(--gold); color:#0b0b0f; border:none; padding:.9rem 2.2rem; border-radius:50px;
+  cursor:pointer; transition:background .18s,transform .14s,box-shadow .18s;
+  box-shadow:0 4px 20px rgba(200,168,75,.28);
+}
+.btn-primary:hover { background:var(--gold2); transform:translateY(-1px); box-shadow:0 6px 28px rgba(200,168,75,.4); }
+.btn-primary:active { transform:scale(.97); }
+.btn-primary:disabled { opacity:.3; cursor:not-allowed; transform:none; box-shadow:none; }
+
+.voted-badge {
+  display:none; align-items:center; gap:7px; font-size:12px; color:var(--gold);
+  border:1px solid rgba(200,168,75,.3); background:rgba(200,168,75,.07);
+  padding:.5rem 1.1rem; border-radius:50px;
+}
+
+/* TOAST */
+.toast {
+  position:fixed; bottom:2rem; left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--surface2); border:1px solid var(--border2); border-radius:50px;
+  padding:.75rem 1.6rem; font-size:13px; color:var(--text); white-space:nowrap;
+  opacity:0; pointer-events:none; z-index:9998;
+  transition:opacity .22s,transform .22s; box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.success { border-color:rgba(200,168,75,.4); color:var(--gold2); }
+.toast.error   { border-color:rgba(200,80,80,.3); color:#e08080; }
+
+/* RESPONSIVE */
+@media (max-width:600px) {
+  .panels { padding:0 1rem 4rem; }
+  .tabs { padding:0 .8rem; }
+  .podium { gap:6px; }
+  .pod-card { padding:1rem .5rem .8rem; }
+  .pod-name { font-size:12px; }
+  .rank-row { grid-template-columns:26px 1fr 60px; gap:8px; }
+  .rank-bar,.rank-pct,.rank-tt { display:none; }
+  .cand-grid { grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); }
+}
+</style>
+</head>
+<body>
+
+<div class="glow-1"></div>
+<div class="glow-2"></div>
+
+<header>
+  <div class="header-eyebrow">♦ &nbsp; The Royal Poll &nbsp; ♦</div>
+  <div class="header-logo">
+    <img src="Title1.png" alt="RoyalMog"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <div class="fallback">RoyalMog</div>
+  </div>
+  <p class="header-tagline">Who truly deserves the crown?</p>
+  <div class="header-rule"></div>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('rankings',this)">Live Rankings</button>
+    <button class="tab"        onclick="switchTab('vote',this)">Cast a Vote</button>
+  </div>
+</div>
+
+<div class="panels">
+
+  <!-- RANKINGS -->
+  <div class="panel active" id="panel-rankings">
+    <div class="section-head">
+      <span class="section-title">Live Standings</span>
+      <span class="section-meta" id="total-label">— votes cast</span>
+    </div>
+    <div id="rankings-content">
+      <div class="loading-state"><div class="spinner"></div>Loading rankings…</div>
+    </div>
+  </div>
+
+  <!-- VOTE -->
+  <div class="panel" id="panel-vote">
+    <div class="vote-head">
+      <div class="vote-title">Cast Your Vote</div>
+      <p class="vote-sub">Search for a royal and make your selection</p>
+    </div>
+    <div class="search-wrap">
+      <span class="search-ico">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="8.5" cy="8.5" r="5.5"/><line x1="12.5" y1="12.5" x2="17" y2="17"/>
+        </svg>
+      </span>
+      <input class="search-input" type="text" id="search-input"
+        placeholder="Search for a prince or princess…" oninput="filterCandidates()" autocomplete="off">
+    </div>
+    <div id="lbl-princes" class="cand-sec-label">Princes</div>
+    <div class="cand-grid" id="grid-princes"></div>
+    <div id="lbl-princesses" class="cand-sec-label">Princesses</div>
+    <div class="cand-grid" id="grid-princesses"></div>
+    <div class="no-results" id="no-results">No royals found for that search.</div>
+    <div class="vote-action">
+      <button class="btn-primary" id="vote-btn" onclick="submitVote()" disabled>Select a Royal First</button>
+      <div class="voted-badge" id="voted-badge">
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="2,8 6,12 14,4"/>
+        </svg>
+        Your vote is recorded
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FIREBASE SDK  (modular v10 via CDN)
+     ═══════════════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, doc, getDoc, onSnapshot,
+         runTransaction, increment }              from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getAnalytics }                           from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
+
+/* ═══════════════════════════════════════════
+   🔧  PASTE YOUR FIREBASE CONFIG HERE
+   ═══════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey:            "AIzaSyAHMkMwjU4B78ItURh5rD2nvXyq4lFwzAs",
+  authDomain:        "royalmog-a8a40.firebaseapp.com",
+  projectId:         "royalmog-a8a40",
+  storageBucket:     "royalmog-a8a40",
+  messagingSenderId: "634535128872",
+  appId:             "1:634535128872:web:fdad8b39807d9b53c7ea1d",
+  measurementId:     "G-9JJMYHF1GB"
+};
+
+/* ═══════════════════════════════════════════════════════════
+   DATA — candidates + their TikTok handles
+   Add/change tiktok: '@handle' for each royal.
+   ═══════════════════════════════════════════════════════════ */
+const PRINCES = [
+  { id:'paris',    name:'Paris',       tiktok:'@princeparis'     },
+  { id:'sweden',   name:'Sweden',      tiktok:'@princesweden'    },
+  { id:'germany',  name:'Germany',     tiktok:'@princegermany'   },
+  { id:'holland',  name:'Holland',     tiktok:'@princeholland'   },
+  { id:'leeuw',    name:'Leeuwarden',  tiktok:'@princeleeuwarden'},
+  { id:'dubai',    name:'Dubai',       tiktok:'@princedubai'     },
+  { id:'italy',    name:'Italy',       tiktok:'@princeitaly'     },
+  { id:'norway',   name:'Norway',      tiktok:'@princenorway'    },
+  { id:'brabant',  name:'Brabant',     tiktok:'@princebrabant'   },
+  { id:'iraq',     name:'Iraq',        tiktok:'@princeiraq'      },
+  { id:'ghana',    name:'Ghana',       tiktok:'@princeghana'     },
+  { id:'miami',    name:'Miami',       tiktok:'@princemiami'     },
+  { id:'egypt',    name:'Egypt',       tiktok:'@princeegypt'     },
+];
+const PRINCESSES = [
+  { id:'poland',   name:'Poland',      tiktok:'@princesspoland'  },
+  { id:'cannes',   name:'Cannes',      tiktok:'@princesscannes'  },
+];
+const ALL = [...PRINCES, ...PRINCESSES];
+
+/* ─── TikTok SVG icon ─── */
+const TT_ICON = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.27 8.27 0 0 0 4.84 1.55V7.05a4.85 4.85 0 0 1-1.07-.36z"/></svg>`;
+
+function ttUrl(handle) {
+  return `https://www.tiktok.com/${handle.startsWith('@') ? handle : '@'+handle}`;
+}
+
+function isPrincess(id) { return PRINCESSES.some(p => p.id === id); }
+
+/* ─── Anti-abuse helpers ─── */
+const VOTED_KEY = 'rm_voted_v1';
+const VOTE_TS   = 'rm_vote_ts';
+const RATE_MS   = 86400000; // 24h client-side guard (server rule is the real lock)
+
+function hasVoted()  { return !!localStorage.getItem(VOTED_KEY); }
+function markVoted() { localStorage.setItem(VOTED_KEY, '1'); localStorage.setItem(VOTE_TS, Date.now()); }
+
+/* Rate-limit: if somehow flag cleared, still block within 24h */
+function withinRateWindow() {
+  const ts = parseInt(localStorage.getItem(VOTE_TS) || '0');
+  return ts && (Date.now() - ts < RATE_MS);
+}
+
+/* ─── Firebase init ─── */
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+try { getAnalytics(app); } catch(_) {}
+
+const VOTES_DOC = doc(db, 'royalmog', 'votes');
+
+/* ─── Real-time listener → re-render rankings ─── */
+onSnapshot(VOTES_DOC, snap => {
+  const data = snap.exists() ? snap.data() : {};
+  renderRankings(data);
+}, err => {
+  console.warn('Snapshot error', err);
+  document.getElementById('rankings-content').innerHTML =
+    `<div class="empty-state"><span class="e-crown">♛</span>Could not load rankings.<br>Check your connection.</div>`;
+});
+
+/* ─── Render rankings ─── */
+function renderRankings(data) {
+  const sorted = ALL.map(c => ({...c, v: data[c.id] || 0})).sort((a,b) => b.v - a.v);
+  const tot    = sorted.reduce((s,c) => s + c.v, 0);
+  const maxV   = sorted[0]?.v || 1;
+
+  document.getElementById('total-label').textContent = `${tot} vote${tot!==1?'s':''} cast`;
+
+  if (tot === 0) {
+    document.getElementById('rankings-content').innerHTML = `
+      <div class="empty-state"><span class="e-crown">♛</span>No votes yet.<br>Be the first to crown a royal.</div>`;
+    return;
+  }
+
+  const top3   = sorted.slice(0, 3);
+  const rest   = sorted.slice(3);
+  const podOrd = top3.length === 1 ? [null, top3[0], null]
+               : top3.length === 2 ? [null, top3[0], top3[1]]
+               : [top3[1], top3[0], top3[2]];
+  const pCls   = ['p2','p1','p3'];
+  const pMedal = ['2nd Place','1st Place','3rd Place'];
+  const pGlyph = ['♙','♛','♜'];
+
+  const podHTML = podOrd.map((c,i) => {
+    if (!c) return `<div class="pod-card" style="visibility:hidden"></div>`;
+    const pct = Math.round((c.v / tot) * 100);
+    return `
+      <div class="pod-card ${pCls[i]}">
+        <div class="pod-medal">${pMedal[i]}</div>
+        <span class="pod-glyph">${pGlyph[i]}</span>
+        <div class="pod-type">${isPrincess(c.id)?'Princess of':'Prince of'}</div>
+        <div class="pod-name">${c.name}</div>
+        <div class="pod-votes">${c.v}</div>
+        <div class="pod-pct">${pct}%</div>
+        <a class="pod-tt" href="${ttUrl(c.tiktok)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">
+          ${TT_ICON} TikTok
+        </a>
+      </div>`;
+  }).join('');
+
+  const listHTML = rest.map((c,i) => {
+    const pct  = Math.round((c.v / tot) * 100);
+    const barW = Math.round((c.v / maxV) * 100);
+    return `
+      <div class="rank-row" style="animation-delay:${i*0.04}s">
+        <div class="rank-num">${i+4}</div>
+        <div>
+          <div class="rank-name">${c.name}</div>
+          <div class="rank-type">${isPrincess(c.id)?'Princess of':'Prince of'}</div>
+        </div>
+        <div class="rank-bar">
+          <div class="rank-track"><div class="rank-fill" style="width:${barW}%"></div></div>
+        </div>
+        <div class="rank-pct">${pct}%</div>
+        <a class="rank-tt" href="${ttUrl(c.tiktok)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">
+          ${TT_ICON} TikTok
+        </a>
+      </div>`;
+  }).join('');
+
+  document.getElementById('rankings-content').innerHTML =
+    `<div class="podium">${podHTML}</div><div class="rank-list">${listHTML}</div>`;
+}
+
+/* ─── Build vote grid ─── */
+function buildGrid(gridId, list, princessFlag) {
+  document.getElementById(gridId).innerHTML = list.map(c => `
+    <div class="cand-card" id="card-${c.id}" data-name="${c.name.toLowerCase()}">
+      <div class="cand-check"><svg viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1"/></svg></div>
+      <span class="cand-glyph">${princessFlag ? '♛' : '♔'}</span>
+      <div class="cand-label">${princessFlag ? 'Princess of' : 'Prince of'}</div>
+      <div class="cand-name">${c.name}</div>
+      <a class="cand-tt" href="${ttUrl(c.tiktok)}" target="_blank" rel="noopener noreferrer">
+        ${TT_ICON} TikTok
+      </a>
+    </div>`).join('');
+
+  // Attach click on card (not on the TikTok link)
+  list.forEach(c => {
+    document.getElementById('card-'+c.id).addEventListener('click', e => {
+      if (e.target.closest('.cand-tt')) return; // don't select when clicking TikTok
+      selectCand(c.id);
+    });
+  });
+}
+
+/* ─── Selection ─── */
+let selected = null;
+window._selected = () => selected; // expose for submit
+
+function selectCand(id) {
+  if (hasVoted() || withinRateWindow()) {
+    showToast('You have already cast your royal vote.', 'error'); return;
+  }
+  selected = selected === id ? null : id;
+  document.querySelectorAll('.cand-card').forEach(el =>
+    el.classList.toggle('selected', el.id === 'card-' + selected));
+  const btn = document.getElementById('vote-btn');
+  if (selected) {
+    const c = ALL.find(x => x.id === selected);
+    btn.textContent = `Vote for ${c.name}`;
+    btn.disabled = false;
+  } else {
+    btn.textContent = 'Select a Royal First';
+    btn.disabled = true;
+  }
+}
+
+/* ─── Submit vote via Firestore transaction ─── */
+window.submitVote = async function() {
+  if (!selected)                        { showToast('Please select a candidate first.', 'error'); return; }
+  if (hasVoted() || withinRateWindow()) { showToast('You have already voted!', 'error'); return; }
+
+  const btn = document.getElementById('vote-btn');
+  btn.disabled = true;
+  btn.textContent = 'Casting…';
+
+  const candidateId = selected;
+
+  try {
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(VOTES_DOC);
+      // Validate candidateId is a known royal — prevent arbitrary writes
+      if (!ALL.some(c => c.id === candidateId)) throw new Error('Invalid candidate');
+      tx.set(VOTES_DOC, { [candidateId]: increment(1) }, { merge: true });
+    });
+
+    markVoted();
+    const c = ALL.find(x => x.id === candidateId);
+    showToast(`Your vote for ${c.name} has been cast. Long may they reign.`, 'success');
+
+    btn.style.display = 'none';
+    document.getElementById('voted-badge').style.display = 'inline-flex';
+    document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents = 'none');
+    selected = null;
+
+  } catch(err) {
+    console.error(err);
+    showToast('Something went wrong. Please try again.', 'error');
+    btn.disabled = false;
+    btn.textContent = selected ? `Vote for ${ALL.find(x=>x.id===selected)?.name}` : 'Select a Royal First';
+  }
+};
+
+/* ─── Search ─── */
+window.filterCandidates = function() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  let vP = 0, vPr = 0;
+  PRINCES.forEach(c => {
+    const el = document.getElementById('card-'+c.id);
+    const hide = q && !c.name.toLowerCase().includes(q);
+    el.classList.toggle('hidden', hide);
+    if (!hide) vP++;
+  });
+  PRINCESSES.forEach(c => {
+    const el = document.getElementById('card-'+c.id);
+    const hide = q && !c.name.toLowerCase().includes(q);
+    el.classList.toggle('hidden', hide);
+    if (!hide) vPr++;
+  });
+  document.getElementById('lbl-princes').style.display    = vP  > 0 ? '' : 'none';
+  document.getElementById('lbl-princesses').style.display = vPr > 0 ? '' : 'none';
+  document.getElementById('no-results').style.display     = (vP+vPr===0) ? 'block' : 'none';
+};
+
+/* ─── Toast ─── */
+let toastTimer;
+window.showToast = function(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4200);
+};
+
+/* ─── Tab switch ─── */
+window.switchTab = function(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+};
+
+/* ─── Init ─── */
+buildGrid('grid-princes', PRINCES, false);
+buildGrid('grid-princesses', PRINCESSES, true);
+
+if (hasVoted() || withinRateWindow()) {
+  document.getElementById('vote-btn').disabled = true;
+  document.getElementById('vote-btn').style.display = 'none';
+  document.getElementById('voted-badge').style.display = 'inline-flex';
+  document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents = 'none');
+}
+</script>
+</body>
+</html>
