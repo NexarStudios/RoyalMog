@@ -4,648 +4,576 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RoyalMog — Who Reigns Supreme?</title>
-<meta name="description" content="RoyalMog — vote for the best prince or princess and follow live royal rankings.">
+<meta name="description" content="Vote for the best prince or princess. Live royal rankings updated in real time.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════
-   BASE
-═══════════════════════════════════════ */
+
+/* ─────────────────────────────────────
+   TOKENS
+───────────────────────────────────── */
+:root {
+  --bg:     #08080e;
+  --s1:     #0e0e18;
+  --s2:     #13131f;
+  --s3:     #191926;
+  --s4:     #1f1f30;
+  --bdr:    rgba(255,255,255,0.07);
+  --bdr2:   rgba(255,255,255,0.12);
+  --gold:   #c9a84c;
+  --gold2:  #e8cc78;
+  --ga:     rgba(201,168,76,0.10);
+  --gb:     rgba(201,168,76,0.20);
+  --silver: #a8a8c0;
+  --bronze: #a87850;
+  --txt:    #eee8d8;
+  --txt2:   rgba(238,232,216,0.50);
+  --txt3:   rgba(238,232,216,0.28);
+  --red:    #ff3355;
+  --reda:   rgba(255,51,85,0.10);
+  --redb:   rgba(255,51,85,0.22);
+}
+
+/* ─────────────────────────────────────
+   RESET
+───────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-
-:root {
-  --bg:      #07070b;
-  --s1:      #0d0d15;
-  --s2:      #121220;
-  --s3:      #181828;
-  --s4:      #1e1e32;
-  --bdr:     rgba(255,255,255,0.055);
-  --bdr2:    rgba(255,255,255,0.10);
-  --bdr3:    rgba(255,255,255,0.16);
-  --gold:    #c9a84c;
-  --gold2:   #e8cc78;
-  --gold3:   #f5e0a0;
-  --golda:   rgba(201,168,76,0.13);
-  --goldb:   rgba(201,168,76,0.22);
-  --silver:  #b0b0cc;
-  --bronze:  #b08060;
-  --txt:     #ede8da;
-  --txt2:    rgba(237,232,218,0.50);
-  --txt3:    rgba(237,232,218,0.26);
-  --tt:      #ff2d55;
-  --tta:     rgba(255,45,85,0.10);
-  --ttb:     rgba(255,45,85,0.22);
-  --r:       16px;
-  --r2:      10px;
-  --nav:     60px;
-  --max:     1080px;
-}
 
 body {
   background: var(--bg);
   color: var(--txt);
-  font-family: 'Nunito Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 300;
+  line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
-/* ── Grain ── */
-body::before {
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9998;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
-  background-size: 190px; opacity: .42;
+/* ─────────────────────────────────────
+   ATMOSPHERE
+───────────────────────────────────── */
+.atm {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 0%,   rgba(201,168,76,.055) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 70% at 90% 100%,  rgba(80,60,180,.045)  0%, transparent 55%);
+}
+/* grain */
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9000;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E") repeat;
+  opacity: .4;
 }
 
-/* ── Ambient glows ── */
-.gl { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
-.gl-a {
-  width: 900px; height: 600px; top: -200px; left: -250px;
-  background: radial-gradient(ellipse, rgba(201,168,76,.055) 0%, transparent 60%);
-  filter: blur(140px);
-}
-.gl-b {
-  width: 700px; height: 700px; bottom: -250px; right: -200px;
-  background: radial-gradient(ellipse, rgba(80,60,180,.048) 0%, transparent 60%);
-  filter: blur(140px);
-}
-.gl-c {
-  width: 400px; height: 400px; top: 40%; left: 50%; transform: translateX(-50%);
-  background: radial-gradient(ellipse, rgba(201,168,76,.018) 0%, transparent 60%);
-  filter: blur(100px);
-}
-
-/* ═══════════════════════════════════════
-   NAV
-═══════════════════════════════════════ */
+/* ─────────────────────────────────────
+   STICKY NAV
+───────────────────────────────────── */
 .nav {
-  position: sticky; top: 0; z-index: 300;
-  height: var(--nav);
-  background: rgba(7,7,11,.92);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  position: sticky; top: 0; z-index: 500;
+  height: 58px;
+  background: rgba(8,8,14,.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--bdr);
 }
-.nav-inner {
-  max-width: var(--max); margin: 0 auto; height: 100%;
-  padding: 0 28px;
+.nav-in {
+  max-width: 1060px; margin: 0 auto; height: 100%;
+  padding: 0 24px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.nav-brand {
-  font-family: 'Cinzel', serif; font-size: 17px; font-weight: 700;
+.brand {
+  font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700;
   letter-spacing: 4px; color: var(--gold2); text-decoration: none;
-  display: flex; align-items: center; gap: 10px;
-  text-shadow: 0 0 30px rgba(201,168,76,.32);
+  text-shadow: 0 0 28px rgba(201,168,76,.3);
 }
-.nav-brand-crown {
-  font-size: 14px; color: var(--gold); opacity: .7;
-}
+.brand-crown { color: var(--gold); opacity: .7; margin-right: 6px; }
 
-.nav-pills { display: flex; gap: 4px; }
-.nav-pill {
-  font-family: 'Nunito Sans', sans-serif;
-  font-size: 11px; font-weight: 600; letter-spacing: 2.5px;
-  text-transform: uppercase; color: var(--txt3);
-  padding: 8px 18px; border-radius: 50px;
-  cursor: pointer; border: 1px solid transparent; background: transparent;
+.tabs { display: flex; gap: 4px; }
+.tab-btn {
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--txt3);
+  padding: 7px 16px; border-radius: 6px; border: 1px solid transparent;
+  background: transparent; cursor: pointer;
   transition: color .2s, background .2s, border-color .2s;
 }
-.nav-pill:hover { color: var(--txt2); border-color: var(--bdr2); }
-.nav-pill.active {
-  color: var(--gold2); background: var(--golda);
-  border-color: var(--goldb);
-}
+.tab-btn:hover { color: var(--txt2); border-color: var(--bdr); }
+.tab-btn.on { color: var(--gold2); background: var(--ga); border-color: var(--gb); }
 
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    HERO
-═══════════════════════════════════════ */
+───────────────────────────────────── */
 .hero {
   position: relative; z-index: 1;
   text-align: center;
-  padding: 64px 28px 52px;
+  padding: 56px 24px 44px;
   border-bottom: 1px solid var(--bdr);
-  background: linear-gradient(180deg, rgba(201,168,76,.025) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(201,168,76,.022) 0%, transparent 100%);
 }
-.hero-eyebrow {
-  font-size: 9.5px; font-weight: 600; letter-spacing: 6px;
-  text-transform: uppercase; color: var(--gold); opacity: .55;
-  margin-bottom: 22px;
+.hero-over {
+  font-size: 9px; font-weight: 600; letter-spacing: 6px;
+  text-transform: uppercase; color: var(--gold); opacity: .5; margin-bottom: 20px;
 }
-.hero-logo {
-  display: inline-block; position: relative;
-}
-.hero-logo img {
+.hero-img {
   display: block; margin: 0 auto;
-  max-width: 400px; width: 88%;
-  max-height: 100px;
+  max-width: 380px; width: 86%; max-height: 96px;
   object-fit: contain;
-  filter: drop-shadow(0 0 32px rgba(201,168,76,.24));
+  filter: drop-shadow(0 0 26px rgba(201,168,76,.22));
 }
-.hero-fallback {
-  font-family: 'Cinzel', serif; font-size: clamp(2.2rem, 7vw, 4.2rem);
-  font-weight: 900; letter-spacing: 10px; color: var(--gold2);
-  text-shadow: 0 0 50px rgba(201,168,76,.35); display: none;
+.hero-txt {
+  font-family: 'Cinzel', serif; font-size: clamp(2rem, 7vw, 4rem);
+  font-weight: 700; letter-spacing: 10px; color: var(--gold2);
+  text-shadow: 0 0 50px rgba(201,168,76,.3); display: none;
 }
-.hero-tagline {
-  font-size: 14px; font-style: italic; font-weight: 300;
-  color: var(--txt2); margin-top: 14px; letter-spacing: .5px;
+.hero-tag {
+  margin-top: 12px; font-size: 13px; font-style: italic; color: var(--txt2); font-weight: 300;
 }
-.hero-divider {
+.hero-rule {
   display: flex; align-items: center; justify-content: center; gap: 12px;
-  margin-top: 24px; color: var(--gold); opacity: .3; font-size: 10px; letter-spacing: 6px;
+  margin-top: 22px; color: var(--gold); opacity: .25; font-size: 9px; letter-spacing: 6px;
 }
-.hero-divider::before, .hero-divider::after {
-  content: ''; display: block; width: 60px; height: 1px;
+.hero-rule::before, .hero-rule::after {
+  content: ''; display: block; width: 56px; height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold));
 }
-.hero-divider::after { transform: scaleX(-1); }
+.hero-rule::after { transform: scaleX(-1); }
 
-/* ═══════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════ */
-.page {
-  max-width: var(--max); margin: 0 auto;
-  padding: 0 28px 100px;
+/* ─────────────────────────────────────
+   MAIN WRAPPER
+───────────────────────────────────── */
+.wrap {
   position: relative; z-index: 1;
+  max-width: 1060px; margin: 0 auto;
+  padding: 0 24px 80px;
 }
-.panel { display: none; padding-top: 44px; }
-.panel.active { display: block; animation: fadeUp .32s ease both; }
-@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+.panel { display: none; padding-top: 40px; }
+.panel.on { display: block; animation: up .3s ease both; }
+@keyframes up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-.s-head {
-  display: flex; align-items: baseline;
-  justify-content: space-between; margin-bottom: 32px; gap: 12px;
+/* section heading */
+.sh {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; gap: 12px;
 }
-.s-title {
-  font-family: 'Cinzel', serif;
-  font-size: 18px; font-weight: 600; letter-spacing: 2.5px; color: var(--txt);
+.sh-title {
+  font-family: 'Cinzel', serif; font-size: 17px; font-weight: 600;
+  letter-spacing: 2px; color: var(--txt);
 }
-.s-meta {
-  font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--txt3);
-}
+.sh-meta { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--txt3); }
 
-/* ═══════════════════════════════════════
-   PODIUM — always 3 columns, #1 elevated
-═══════════════════════════════════════ */
+/* ─────────────────────────────────────
+   PODIUM  (always 3 columns, #1 tallest)
+   Strategy: use align-items:end so the
+   taller centre card "rises" naturally.
+───────────────────────────────────── */
 .podium {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 14px;
-  margin-bottom: 28px;
-  align-items: end;           /* key: lets #1 "rise" via extra height */
-}
-
-/* base pod */
-.pod {
-  background: var(--s1);
-  border: 1px solid var(--bdr);
-  border-radius: var(--r);
-  overflow: hidden;
-  display: flex; flex-direction: column; align-items: stretch;
-  transition: border-color .2s, box-shadow .2s;
-  position: relative;
-}
-
-/* ── #1 is visually taller / elevated ── */
-.pod.p1 {
-  border-color: var(--goldb);
-  box-shadow: 0 0 60px rgba(201,168,76,.09), 0 20px 60px rgba(0,0,0,.4);
-  margin-bottom: 0;
-}
-.pod.p2 { border-color: rgba(176,176,204,.18); margin-bottom: 36px; }
-.pod.p3 { border-color: rgba(176,128,96,.2);  margin-bottom: 36px; }
-
-/* crown ribbon for #1 */
-.pod.p1::before {
-  content: '♛  1st Place  ♛';
-  position: absolute; top: 0; left: 0; right: 0; z-index: 5;
-  font-family: 'Cinzel', serif; font-size: 9px; font-weight: 600;
-  letter-spacing: 3px; text-transform: uppercase;
-  color: var(--gold2); text-align: center;
-  padding: 7px 8px 6px;
-  background: linear-gradient(135deg, rgba(201,168,76,.28), rgba(201,168,76,.14));
-  border-bottom: 1px solid var(--goldb);
-}
-
-/* photo */
-.pod-photo {
-  width: 100%;
-  aspect-ratio: 3/4;
-  overflow: hidden;
-  background: var(--s2); flex-shrink: 0;
-  position: relative;
-}
-.pod.p1 .pod-photo {
-  aspect-ratio: 2/3;           /* taller image for winner */
-  padding-top: 30px;           /* space for ribbon */
-}
-.pod-photo img {
-  width: 100%; height: 100%; object-fit: cover; object-position: center top;
-  display: block; transition: transform .5s ease;
-}
-.pod:hover .pod-photo img { transform: scale(1.05); }
-.pod-photo-placeholder {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 38px; color: var(--txt3);
-  background: linear-gradient(150deg, var(--s2), var(--s3));
-}
-.pod.p1 .pod-photo-placeholder { font-size: 52px; }
-
-/* rank chip for 2nd & 3rd */
-.pod-chip {
-  position: absolute; top: 8px; left: 8px; z-index: 5;
-  font-family: 'Cinzel', serif; font-size: 9px; font-weight: 600;
-  letter-spacing: 2px; text-transform: uppercase;
-  padding: 4px 11px; border-radius: 50px;
-}
-.pod.p2 .pod-chip { color: var(--silver); background: rgba(176,176,204,.1); border: 1px solid rgba(176,176,204,.22); }
-.pod.p3 .pod-chip { color: var(--bronze); background: rgba(176,128,96,.1);  border: 1px solid rgba(176,128,96,.22); }
-
-/* body */
-.pod-body {
-  padding: 12px 14px 16px;
-  display: flex; flex-direction: column; gap: 4px;
-  background: linear-gradient(180deg, var(--s1) 0%, rgba(18,18,32,.6) 100%);
-}
-.pod-type  { font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--txt3); }
-.pod-name  { font-family: 'Cinzel', serif; font-size: 15px; font-weight: 600; color: var(--txt); line-height: 1.2; }
-.pod.p1 .pod-name  { font-size: 18px; color: var(--gold2); }
-.pod-votes { font-size: 24px; font-weight: 200; color: var(--txt2); margin-top: 2px; }
-.pod.p1 .pod-votes { font-size: 30px; color: var(--gold2); }
-.pod-pct   { font-size: 10px; color: var(--txt3); margin-bottom: 10px; }
-
-.tt-btn {
-  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
-  font-family: 'Nunito Sans', sans-serif; font-size: 10px; font-weight: 600;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--tt); text-decoration: none;
-  background: var(--tta); border: 1px solid rgba(255,45,85,.25);
-  padding: 6px 13px; border-radius: 50px;
-  transition: background .18s, border-color .18s, transform .15s;
-}
-.tt-btn:hover { background: var(--ttb); border-color: rgba(255,45,85,.55); transform: translateY(-1px); }
-.tt-btn svg  { width: 11px; height: 11px; fill: currentColor; flex-shrink: 0; }
-
-/* ═══════════════════════════════════════
-   RANK LIST (4th+)
-═══════════════════════════════════════ */
-.rank-list { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
-
-.rank-row {
-  display: grid;
-  grid-template-columns: 36px 1fr 110px 44px auto;
-  align-items: center; gap: 14px;
-  padding: 12px 18px; border-radius: var(--r2);
-  background: var(--s1); border: 1px solid transparent;
-  transition: background .18s, border-color .18s;
-  animation: rowIn .4s ease both;
-}
-@keyframes rowIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:none; } }
-.rank-row:hover { background: var(--s2); border-color: var(--bdr); }
-
-.rank-num  { font-family: 'Cinzel', serif; font-size: 13px; color: var(--txt3); text-align: center; }
-.rank-name { font-size: 13px; font-weight: 600; color: var(--txt); }
-.rank-type { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--txt3); margin-top: 2px; }
-
-.rank-bar   { display: flex; align-items: center; gap: 7px; }
-.rank-track { flex: 1; height: 3px; background: rgba(255,255,255,.05); border-radius: 2px; overflow: hidden; }
-.rank-fill  { height: 3px; background: linear-gradient(90deg,var(--gold),var(--gold2)); border-radius: 2px; transition: width 1.1s cubic-bezier(.4,0,.2,1); }
-.rank-pct   { font-size: 11px; color: var(--txt3); font-weight: 600; text-align: right; min-width: 30px; }
-
-.rank-tt {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 9.5px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
-  color: var(--tt); text-decoration: none;
-  background: var(--tta); border: 1px solid rgba(255,45,85,.2);
-  padding: 5px 11px; border-radius: 50px; white-space: nowrap;
-  transition: background .18s, border-color .18s;
-}
-.rank-tt:hover { background: var(--ttb); border-color: rgba(255,45,85,.5); }
-.rank-tt svg { width: 10px; height: 10px; fill: currentColor; }
-
-/* ═══════════════════════════════════════
-   STATES
-═══════════════════════════════════════ */
-.empty-state {
-  text-align: center; padding: 72px 24px;
-  color: var(--txt3); font-size: 14px; font-style: italic; font-weight: 300;
-}
-.empty-state .ec { font-size: 36px; display: block; margin-bottom: 14px; opacity: .2; }
-
-.loading-box { text-align: center; padding: 60px 24px; }
-.spin {
-  width: 24px; height: 24px; margin: 0 auto 14px;
-  border: 2px solid var(--bdr2); border-top-color: var(--gold);
-  border-radius: 50%; animation: spin .75s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-txt { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--txt3); }
-
-/* ═══════════════════════════════════════
-   VOTE PANEL
-═══════════════════════════════════════ */
-.vote-intro { margin-bottom: 30px; }
-.vote-ttl {
-  font-family: 'Cinzel', serif; font-size: 18px; font-weight: 600;
-  letter-spacing: 2.5px; margin-bottom: 7px;
-}
-.vote-sub { font-size: 13px; color: var(--txt2); font-style: italic; font-weight: 300; }
-
-/* search */
-.srch { position: relative; margin-bottom: 30px; }
-.srch-ico { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--txt3); pointer-events: none; line-height: 0; }
-.srch-ico svg { width: 15px; height: 15px; display: block; }
-.srch-input {
-  width: 100%; background: var(--s1); border: 1px solid var(--bdr2);
-  border-radius: var(--r); color: var(--txt);
-  font-family: 'Nunito Sans', sans-serif; font-size: 14px; font-weight: 300;
-  padding: 13px 16px 13px 42px; outline: none;
-  transition: border-color .2s, box-shadow .2s;
-}
-.srch-input::placeholder { color: var(--txt3); }
-.srch-input:focus { border-color: var(--goldb); box-shadow: 0 0 0 3px var(--golda); }
-
-/* section label */
-.sec-lbl {
-  font-size: 9.5px; letter-spacing: 4px; text-transform: uppercase; color: var(--txt3);
-  margin: 32px 0 16px; padding-bottom: 10px;
-  border-bottom: 1px solid var(--bdr);
-}
-
-/* ── VOTE GRID — uniform cards regardless of image ── */
-.cand-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  grid-template-columns: 1fr 1.1fr 1fr;
   gap: 12px;
+  margin-bottom: 24px;
+  align-items: end;         /* shorter cards sink down, winner stays at top */
 }
 
-.cand-card {
-  background: var(--s1); border: 1px solid var(--bdr);
-  border-radius: var(--r); overflow: hidden;
-  cursor: pointer; user-select: none; position: relative;
+.pod {
+  border-radius: 14px; overflow: hidden;
   display: flex; flex-direction: column;
-  transition: border-color .18s, transform .18s, box-shadow .18s;
+  border: 1px solid var(--bdr);
+  background: var(--s1);
+  transition: border-color .2s;
 }
-.cand-card:hover {
-  border-color: var(--bdr3); transform: translateY(-3px);
-  box-shadow: 0 10px 36px rgba(0,0,0,.45);
-}
-.cand-card.selected {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 1px var(--gold), 0 10px 36px rgba(201,168,76,.15);
-  transform: translateY(-3px);
-}
-.cand-card.hidden { display: none; }
+.pod.gold   { border-color: var(--gb); box-shadow: 0 0 48px rgba(201,168,76,.08); }
+.pod.silver { border-color: rgba(168,168,192,.2); }
+.pod.bronze { border-color: rgba(168,120,80,.2); }
 
-/* check mark */
-.c-check {
-  position: absolute; top: 9px; right: 9px; z-index: 10;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: var(--gold); display: flex; align-items: center; justify-content: center;
-  opacity: 0; transform: scale(.4);
-  transition: opacity .18s, transform .18s;
-  box-shadow: 0 2px 8px rgba(0,0,0,.5);
+/* photo — taller for #1 */
+.pod-img {
+  width: 100%; overflow: hidden;
+  background: var(--s2); flex-shrink: 0; position: relative;
 }
-.c-check svg { width: 10px; height: 10px; stroke: #07070b; stroke-width: 2.5; fill: none; }
-.cand-card.selected .c-check { opacity: 1; transform: scale(1); }
+.pod.gold   .pod-img { height: 220px; }
+.pod.silver .pod-img { height: 160px; }
+.pod.bronze .pod-img { height: 160px; }
 
-/* photo — FIXED height so all cards are uniform */
-.c-photo {
-  width: 100%;
-  height: 160px;
-  overflow: hidden; flex-shrink: 0;
-  background: linear-gradient(150deg, var(--s2), var(--s3));
-  position: relative;
+.pod-img img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center 15%;
+  display: block; transition: transform .45s ease;
 }
-.c-photo img {
-  width: 100%; height: 100%; object-fit: cover; object-position: center 20%;
-  display: block; transition: transform .35s ease;
-}
-.cand-card:hover .c-photo img { transform: scale(1.06); }
-.c-placeholder {
+.pod:hover .pod-img img { transform: scale(1.05); }
+.pod-ph {
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
   font-size: 36px; color: var(--txt3);
+  background: linear-gradient(145deg, var(--s2), var(--s3));
 }
 
-/* card body */
-.c-body {
-  padding: 12px 13px 14px;
-  display: flex; flex-direction: column; gap: 0; flex: 1;
+/* rank badge inside photo */
+.pod-badge {
+  position: absolute; top: 10px; left: 10px; z-index: 4;
+  font-family: 'Cinzel', serif; font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 4px 11px; border-radius: 50px;
 }
-.c-type { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--txt3); margin-bottom: 4px; }
-.c-name { font-family: 'Cinzel', serif; font-size: 13px; font-weight: 600; color: var(--txt); line-height: 1.25; margin-bottom: 12px; }
+.pod.gold   .pod-badge { color: var(--gold2); background: rgba(201,168,76,.2); border: 1px solid rgba(201,168,76,.4); }
+.pod.silver .pod-badge { color: var(--silver); background: rgba(168,168,192,.12); border: 1px solid rgba(168,168,192,.28); }
+.pod.bronze .pod-badge { color: var(--bronze); background: rgba(168,120,80,.12);  border: 1px solid rgba(168,120,80,.28); }
 
-.c-footer {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 6px; margin-top: auto;
+/* pod body */
+.pod-body {
+  padding: 14px 14px 16px;
+  display: flex; flex-direction: column; gap: 3px;
+  flex: 1;
 }
-.c-hint {
-  font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--txt3); transition: color .18s;
-}
-.cand-card.selected .c-hint { color: var(--gold); }
+.pod-lbl  { font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--txt3); }
+.pod-name { font-family: 'Cinzel', serif; font-weight: 600; line-height: 1.2; color: var(--txt); }
+.pod.gold .pod-name { font-size: 17px; color: var(--gold2); }
+.pod.silver .pod-name, .pod.bronze .pod-name { font-size: 14px; }
 
-/* TikTok pill on card — stops propagation inline */
-.c-tt {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-family: 'Nunito Sans', sans-serif; font-size: 9px; font-weight: 600;
-  letter-spacing: 1px; text-transform: uppercase;
-  color: var(--tt); text-decoration: none;
-  background: var(--tta); border: 1px solid rgba(255,45,85,.22);
-  padding: 4px 10px; border-radius: 50px;
+.pod-num  { font-size: 26px; font-weight: 200; color: var(--txt2); margin-top: 4px; }
+.pod.gold .pod-num { font-size: 32px; color: var(--gold2); }
+
+.pod-pct { font-size: 10px; color: var(--txt3); margin-bottom: 10px; }
+
+.tt-pill {
+  display: inline-flex; align-items: center; gap: 5px; align-self: flex-start;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--red); background: var(--reda); border: 1px solid rgba(255,51,85,.25);
+  padding: 5px 12px; border-radius: 50px; text-decoration: none;
   transition: background .18s, border-color .18s;
-  flex-shrink: 0;
 }
-.c-tt:hover { background: var(--ttb); border-color: rgba(255,45,85,.5); }
-.c-tt svg { width: 9px; height: 9px; fill: currentColor; }
+.tt-pill:hover { background: var(--redb); border-color: rgba(255,51,85,.55); }
+.tt-pill svg { width: 10px; height: 10px; fill: currentColor; flex-shrink: 0; }
 
-.no-res { text-align: center; padding: 44px 24px; color: var(--txt3); font-style: italic; display: none; }
+/* ─────────────────────────────────────
+   RANK LIST  (4th place and below)
+───────────────────────────────────── */
+.rlist { display: flex; flex-direction: column; gap: 4px; }
 
-/* ═══════════════════════════════════════
-   STICKY VOTE BAR
-═══════════════════════════════════════ */
-.vote-bar {
-  position: sticky; bottom: 0; z-index: 200;
-  background: rgba(7,7,11,.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--bdr2);
-  margin: 0 -28px;
-  padding: 14px 28px;
+.rrow {
+  display: grid;
+  grid-template-columns: 34px 1fr 120px 42px auto;
+  align-items: center; gap: 12px;
+  padding: 11px 16px; border-radius: 10px;
+  background: var(--s1); border: 1px solid transparent;
+  transition: background .16s, border-color .16s;
+  animation: rowIn .4s ease both;
+}
+@keyframes rowIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; } }
+.rrow:hover { background: var(--s2); border-color: var(--bdr); }
+
+.rnum  { font-family: 'Cinzel', serif; font-size: 13px; color: var(--txt3); text-align: center; }
+.rname { font-size: 13px; font-weight: 500; color: var(--txt); }
+.rtype { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--txt3); margin-top: 1px; }
+
+.rbar  { display: flex; align-items: center; gap: 6px; }
+.rtrack{ flex: 1; height: 3px; background: rgba(255,255,255,.05); border-radius: 2px; overflow: hidden; }
+.rfill { height: 3px; background: linear-gradient(90deg, var(--gold), var(--gold2)); border-radius: 2px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+.rpct  { font-size: 11px; color: var(--txt3); font-weight: 500; min-width: 30px; text-align: right; }
+
+.rtt {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--red); background: var(--reda); border: 1px solid rgba(255,51,85,.2);
+  padding: 4px 10px; border-radius: 50px; text-decoration: none; white-space: nowrap;
+  transition: background .18s, border-color .18s;
+}
+.rtt:hover { background: var(--redb); border-color: rgba(255,51,85,.5); }
+.rtt svg { width: 9px; height: 9px; fill: currentColor; }
+
+/* states */
+.empty {
+  text-align: center; padding: 64px 24px; color: var(--txt3);
+  font-size: 13px; font-style: italic;
+}
+.empty .ecrown { font-size: 32px; display: block; margin-bottom: 12px; opacity: .2; }
+.loader { text-align: center; padding: 56px 24px; }
+.spinner {
+  width: 22px; height: 22px; margin: 0 auto 12px;
+  border: 2px solid var(--bdr2); border-top-color: var(--gold);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ltxt { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--txt3); }
+
+/* ─────────────────────────────────────
+   VOTE PANEL
+───────────────────────────────────── */
+.v-intro { margin-bottom: 28px; }
+.v-title { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 600; letter-spacing: 2px; margin-bottom: 6px; }
+.v-sub   { font-size: 13px; color: var(--txt2); font-style: italic; font-weight: 300; }
+
+/* search */
+.sbox { position: relative; margin-bottom: 28px; }
+.sico { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--txt3); pointer-events: none; line-height: 0; }
+.sico svg { display: block; width: 15px; height: 15px; }
+.sinput {
+  width: 100%; padding: 13px 16px 13px 42px;
+  background: var(--s1); border: 1px solid var(--bdr2); border-radius: 12px;
+  color: var(--txt); font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 300;
+  outline: none; transition: border-color .2s, box-shadow .2s;
+}
+.sinput::placeholder { color: var(--txt3); }
+.sinput:focus { border-color: var(--gb); box-shadow: 0 0 0 3px var(--ga); }
+
+/* section divider */
+.sdiv {
+  font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--txt3);
+  padding-bottom: 10px; margin: 28px 0 16px;
+  border-bottom: 1px solid var(--bdr);
+}
+
+/* ─── CARD GRID ─── */
+/* Fixed 4 cols desktop, 3 tablet, 2 mobile — no auto-fill weirdness */
+.cgrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+/* each card: same structure with/without photo */
+.cc {
+  background: var(--s1); border: 1px solid var(--bdr); border-radius: 13px;
+  overflow: hidden; cursor: pointer; user-select: none;
+  display: flex; flex-direction: column; position: relative;
+  transition: border-color .18s, transform .18s, box-shadow .18s;
+}
+.cc:hover { border-color: var(--bdr2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.cc.sel { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 8px 28px rgba(201,168,76,.14); transform: translateY(-2px); }
+.cc.hide { display: none; }
+
+/* checkmark */
+.cc-chk {
+  position: absolute; top: 8px; right: 8px; z-index: 10;
+  width: 19px; height: 19px; border-radius: 50%;
+  background: var(--gold); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(.4); transition: opacity .18s, transform .18s;
+  box-shadow: 0 2px 6px rgba(0,0,0,.5);
+}
+.cc-chk svg { width: 10px; height: 10px; stroke: #08080e; stroke-width: 2.5; fill: none; }
+.cc.sel .cc-chk { opacity: 1; transform: scale(1); }
+
+/* photo — fixed height so all uniform */
+.cc-img {
+  width: 100%; height: 140px; flex-shrink: 0; overflow: hidden;
+  background: linear-gradient(145deg, var(--s2), var(--s3));
+  position: relative;
+}
+.cc-img img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center 15%;
+  display: block; transition: transform .3s ease;
+}
+.cc:hover .cc-img img { transform: scale(1.06); }
+.cc-ph {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; color: var(--txt3);
+}
+
+/* card info */
+.cc-info { padding: 11px 12px 13px; display: flex; flex-direction: column; flex: 1; }
+.cc-lbl  { font-size: 8.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--txt3); margin-bottom: 3px; }
+.cc-name { font-family: 'Cinzel', serif; font-size: 12px; font-weight: 600; color: var(--txt); line-height: 1.3; margin-bottom: 10px; }
+
+.cc-foot {
+  margin-top: auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 4px;
+}
+.cc-hint { font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--txt3); }
+.cc.sel .cc-hint { color: var(--gold); }
+
+.cc-tt {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 8.5px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase;
+  color: var(--red); background: var(--reda); border: 1px solid rgba(255,51,85,.2);
+  padding: 3px 8px; border-radius: 50px; text-decoration: none; flex-shrink: 0;
+  transition: background .18s, border-color .18s;
+}
+.cc-tt:hover { background: var(--redb); border-color: rgba(255,51,85,.5); }
+.cc-tt svg { width: 8px; height: 8px; fill: currentColor; }
+
+.nores { text-align: center; padding: 40px 24px; color: var(--txt3); font-style: italic; display: none; }
+
+/* ─────────────────────────────────────
+   VOTE ACTION BAR  (normal flow, not sticky — avoids overlap)
+───────────────────────────────────── */
+.vbar {
+  margin-top: 32px;
+  padding: 18px 22px;
+  background: var(--s1); border: 1px solid var(--bdr2); border-radius: 14px;
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
 }
 
-.btn-vote {
-  font-family: 'Nunito Sans', sans-serif;
-  font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+.vbtn {
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+  letter-spacing: 2.5px; text-transform: uppercase;
   background: linear-gradient(135deg, var(--gold2), var(--gold));
-  color: #07070b; border: none;
-  padding: 13px 30px; border-radius: 50px; cursor: pointer;
+  color: #08080e; border: none;
+  padding: 13px 28px; border-radius: 50px; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(201,168,76,.28);
   transition: opacity .18s, transform .14s, box-shadow .18s;
-  box-shadow: 0 4px 24px rgba(201,168,76,.32);
 }
-.btn-vote:hover { opacity: .88; transform: translateY(-1px); box-shadow: 0 6px 32px rgba(201,168,76,.48); }
-.btn-vote:active { transform: scale(.97); }
-.btn-vote:disabled { opacity: .28; cursor: not-allowed; transform: none; box-shadow: none; }
+.vbtn:hover { opacity: .88; transform: translateY(-1px); box-shadow: 0 6px 30px rgba(201,168,76,.44); }
+.vbtn:active { transform: scale(.97); }
+.vbtn:disabled { opacity: .28; cursor: not-allowed; transform: none; box-shadow: none; }
 
-.sel-lbl { font-size: 13px; color: var(--txt2); font-style: italic; }
+.vlbl { font-size: 13px; color: var(--txt2); font-style: italic; }
 
-.voted-chip {
-  display: none; align-items: center; gap: 8px;
+.vchip {
+  display: none; align-items: center; gap: 7px;
   font-size: 12px; font-weight: 600; color: var(--gold2);
-  border: 1px solid var(--goldb); background: var(--golda);
-  padding: 10px 20px; border-radius: 50px;
+  border: 1px solid var(--gb); background: var(--ga);
+  padding: 10px 18px; border-radius: 50px;
 }
 
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    FOOTER
-═══════════════════════════════════════ */
-.site-footer {
+───────────────────────────────────── */
+footer {
   position: relative; z-index: 1;
-  text-align: center; padding: 24px 28px 28px;
+  text-align: center; padding: 20px 24px;
   border-top: 1px solid var(--bdr);
-  font-size: 11px; color: var(--txt3); letter-spacing: 1.5px;
+  font-size: 11px; color: var(--txt3); letter-spacing: 1px;
 }
-.site-footer a { color: var(--gold); text-decoration: none; opacity: .7; }
-.site-footer a:hover { opacity: 1; }
+footer a { color: var(--gold); text-decoration: none; opacity: .7; }
+footer a:hover { opacity: 1; }
 
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    TOAST
-═══════════════════════════════════════ */
+───────────────────────────────────── */
 .toast {
-  position: fixed; bottom: 84px; left: 50%;
-  transform: translateX(-50%) translateY(10px);
-  background: var(--s3); border: 1px solid var(--bdr2); border-radius: 50px;
-  padding: 12px 24px; font-size: 13px; font-weight: 400; color: var(--txt);
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--s3); border: 1px solid var(--bdr2);
+  border-radius: 50px; padding: 11px 22px;
+  font-size: 13px; color: var(--txt); white-space: nowrap;
   opacity: 0; pointer-events: none; z-index: 9999;
   transition: opacity .22s, transform .22s;
-  box-shadow: 0 10px 40px rgba(0,0,0,.6);
-  max-width: calc(100vw - 40px); text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  max-width: calc(100vw - 32px); text-align: center;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast.ok  { border-color: var(--goldb); color: var(--gold2); }
+.toast.ok  { border-color: var(--gb); color: var(--gold2); }
 .toast.err { border-color: rgba(220,80,80,.35); color: #e08080; }
 
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    RESPONSIVE
-═══════════════════════════════════════ */
-@media (max-width: 680px) {
-  .page { padding: 0 16px 100px; }
-  .vote-bar { margin: 0 -16px; padding: 13px 16px; }
-  .hero { padding: 44px 16px 38px; }
+───────────────────────────────────── */
 
-  /* podium: always 3 columns side by side on mobile too */
-  .podium {
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-  }
-  .pod.p2, .pod.p3 { margin-bottom: 24px; }
-  .pod-photo { aspect-ratio: 2/3; }
-  .pod.p1 .pod-photo { aspect-ratio: 2/3; }
-  .pod-body { padding: 9px 10px 12px; }
-  .pod-name { font-size: 12px; }
-  .pod.p1 .pod-name { font-size: 14px; }
-  .pod-votes { font-size: 18px; }
-  .pod.p1 .pod-votes { font-size: 22px; }
-  .tt-btn { font-size: 9px; padding: 5px 10px; }
+/* Tablet */
+@media (max-width: 860px) {
+  .cgrid { grid-template-columns: repeat(3, 1fr); }
 
-  /* rank list: hide bar columns */
-  .rank-row {
-    grid-template-columns: 30px 1fr auto;
-    gap: 10px; padding: 11px 14px;
-  }
-  .rank-bar, .rank-pct { display: none; }
+  /* podium: always 3 cols, just scaled */
+  .pod.gold   .pod-img { height: 175px; }
+  .pod.silver .pod-img,
+  .pod.bronze .pod-img { height: 120px; }
 
-  /* vote grid: 2 columns on mobile */
-  .cand-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
-  .c-photo { height: 130px; }
-  .c-name { font-size: 12px; }
+  .rrow { grid-template-columns: 28px 1fr auto; gap: 10px; }
+  .rbar, .rpct { display: none; }
 }
 
-@media (max-width: 380px) {
-  .nav-brand { font-size: 14px; letter-spacing: 2px; }
-  .nav-pill { padding: 7px 12px; font-size: 10px; }
+/* Mobile */
+@media (max-width: 580px) {
+  .wrap { padding: 0 14px 60px; }
+  .hero { padding: 38px 14px 32px; }
+  .nav-in { padding: 0 14px; }
+
+  /* podium stays 3 cols on mobile */
+  .podium { gap: 8px; }
+  .pod.gold   .pod-img { height: 150px; }
+  .pod.silver .pod-img,
+  .pod.bronze .pod-img { height: 110px; }
+  .pod-body { padding: 10px 10px 12px; }
+  .pod-name { font-size: 12px; }
+  .pod.gold .pod-name { font-size: 14px; }
+  .pod-num { font-size: 20px; }
+  .pod.gold .pod-num { font-size: 24px; }
+  .tt-pill { font-size: 8.5px; padding: 4px 9px; }
+  .pod-badge { font-size: 8px; padding: 3px 8px; top: 6px; left: 6px; }
+
+  .cgrid { grid-template-columns: repeat(2, 1fr); }
+  .cc-img { height: 120px; }
+  .cc-name { font-size: 11px; }
+
+  .vbar { padding: 14px 16px; gap: 10px; }
+  .vbtn { padding: 12px 22px; font-size: 10px; }
+}
+
+@media (max-width: 360px) {
+  .brand { font-size: 15px; letter-spacing: 2px; }
+  .tab-btn { padding: 6px 10px; font-size: 10px; }
 }
 </style>
 </head>
 <body>
 
-<div class="gl gl-a"></div>
-<div class="gl gl-b"></div>
-<div class="gl gl-c"></div>
+<div class="atm"></div>
 
 <!-- NAV -->
 <nav class="nav">
-  <div class="nav-inner">
-    <a class="nav-brand" href="#">
-      <span class="nav-brand-crown">♛</span> RoyalMog
-    </a>
-    <div class="nav-pills">
-      <button class="nav-pill active" onclick="switchTab('rankings',this)">Rankings</button>
-      <button class="nav-pill"        onclick="switchTab('vote',this)">Vote</button>
+  <div class="nav-in">
+    <a class="brand" href="#"><span class="brand-crown">♛</span>RoyalMog</a>
+    <div class="tabs">
+      <button class="tab-btn on"  onclick="go('rankings',this)">Rankings</button>
+      <button class="tab-btn"     onclick="go('vote',this)">Vote</button>
     </div>
   </div>
 </nav>
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-eyebrow">♦ &nbsp; The Royal Poll &nbsp; ♦</div>
-  <div class="hero-logo">
-    <img src="Title1.png" alt="RoyalMog"
-      onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-    <div class="hero-fallback">RoyalMog</div>
-  </div>
-  <p class="hero-tagline">Who truly deserves the crown?</p>
-  <div class="hero-divider">✦ ✦ ✦</div>
+  <div class="hero-over">♦ &nbsp; The Royal Poll &nbsp; ♦</div>
+  <img class="hero-img" src="Title1.png" alt="RoyalMog"
+    onerror="this.style.display='none';document.getElementById('hf').style.display='block'">
+  <div class="hero-txt" id="hf">RoyalMog</div>
+  <p class="hero-tag">Who truly deserves the crown?</p>
+  <div class="hero-rule">✦ ✦ ✦</div>
 </div>
 
-<!-- MAIN -->
-<div class="page">
+<!-- PANELS -->
+<div class="wrap">
 
   <!-- RANKINGS -->
-  <div class="panel active" id="panel-rankings">
-    <div class="s-head">
-      <span class="s-title">Live Standings</span>
-      <span class="s-meta" id="total-lbl">— votes</span>
+  <div class="panel on" id="panel-rankings">
+    <div class="sh">
+      <span class="sh-title">Live Standings</span>
+      <span class="sh-meta" id="tot">— votes</span>
     </div>
-    <div id="rank-content">
-      <div class="loading-box"><div class="spin"></div><div class="loading-txt">Loading rankings…</div></div>
+    <div id="rc">
+      <div class="loader"><div class="spinner"></div><div class="ltxt">Loading rankings…</div></div>
     </div>
   </div>
 
   <!-- VOTE -->
   <div class="panel" id="panel-vote">
-    <div class="vote-intro">
-      <div class="vote-ttl">Cast Your Vote</div>
-      <p class="vote-sub">One vote, forever — choose your royal wisely.</p>
+    <div class="v-intro">
+      <div class="v-title">Cast Your Vote</div>
+      <p class="v-sub">One vote, forever — choose your royal wisely.</p>
     </div>
 
-    <div class="srch">
-      <span class="srch-ico">
+    <div class="sbox">
+      <span class="sico">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="8.5" cy="8.5" r="5.5"/><line x1="12.5" y1="12.5" x2="17" y2="17"/>
+          <circle cx="8.5" cy="8.5" r="5.5"/>
+          <line x1="12.5" y1="12.5" x2="17" y2="17"/>
         </svg>
       </span>
-      <input class="srch-input" id="srch" type="text"
-        placeholder="Search by name…" autocomplete="off" oninput="doFilter()">
+      <input class="sinput" id="sinput" type="text"
+        placeholder="Search by name…" autocomplete="off" oninput="doSearch()">
     </div>
 
-    <div id="lbl-p"  class="sec-lbl">Princes</div>
-    <div class="cand-grid" id="grid-p"></div>
+    <div id="lp" class="sdiv">Princes</div>
+    <div class="cgrid" id="gp"></div>
 
-    <div id="lbl-pr" class="sec-lbl">Princesses</div>
-    <div class="cand-grid" id="grid-pr"></div>
+    <div id="lpr" class="sdiv">Princesses</div>
+    <div class="cgrid" id="gpr"></div>
 
-    <div class="no-res" id="no-res">No royals match that search.</div>
+    <div class="nores" id="nores">No royals match that search.</div>
 
-    <div class="vote-bar">
-      <button class="btn-vote" id="vote-btn" onclick="submitVote()" disabled>
-        Select a Royal First
-      </button>
-      <span class="sel-lbl" id="sel-lbl"></span>
-      <div class="voted-chip" id="voted-chip">
+    <div class="vbar">
+      <button class="vbtn" id="vbtn" onclick="doVote()" disabled>Select a Royal First</button>
+      <span class="vlbl" id="vlbl"></span>
+      <div class="vchip" id="vchip">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
           <polyline points="2,8 6,12 14,4"/>
         </svg>
@@ -654,17 +582,14 @@ body::before {
     </div>
   </div>
 
-</div><!-- /page -->
+</div><!-- /wrap -->
 
-<!-- FOOTER -->
-<footer class="site-footer">
-  © 2026 <a href="https://royalmog.org">RoyalMog.org</a> — All rights reserved
-</footer>
+<footer>© 2026 <a href="https://royalmog.org" target="_blank" rel="noopener">RoyalMog.org</a> — All rights reserved</footer>
 
 <div class="toast" id="toast"></div>
 
 <!-- ═══════════════════════════════════════
-     FIREBASE + LOGIC
+     FIREBASE + APP
 ═══════════════════════════════════════ -->
 <script type="module">
 import { initializeApp }
@@ -672,8 +597,8 @@ import { initializeApp }
 import { getFirestore, doc, onSnapshot, runTransaction, increment }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-/* ── Firebase config ── */
-const firebaseConfig = {
+/* ── Config ── */
+const cfg = {
   apiKey:            "AIzaSyAHMkMwjU4B78ItURh5rD2nvXyq4lFwzAs",
   authDomain:        "royalmog-a8a40.firebaseapp.com",
   projectId:         "royalmog-a8a40",
@@ -682,180 +607,163 @@ const firebaseConfig = {
   appId:             "1:634535128872:web:fdad8b39807d9b53c7ea1d",
 };
 
-/* ── Candidate data ── */
+/* ── Data ── */
 const PRINCES = [
-  { id:'paris',   name:'Paris',      image:'images/prince-paris.jpg',  tiktok:'@princeoffparis'     },
-  { id:'sweden',  name:'Sweden',     image:'images/prince-sweden.jpg', tiktok:'@sippeee_g'           },
-  { id:'germany', name:'Germany',    image:'',                         tiktok:'@princeoffgermanyy'   },
-  { id:'holland', name:'Holland',    image:'',                         tiktok:'@sjorshelenklaken'    },
-  { id:'leeuw',   name:'Leeuwarden', image:'images/prince-leeuw.jpg',  tiktok:'@nietsido'            },
-  { id:'dubai',   name:'Dubai',      image:'',                         tiktok:'@bader_es1'           },
-  { id:'italy',   name:'Italy',      image:'',                         tiktok:'@picasso_jr_'         },
-  { id:'norway',  name:'Norway',     image:'',                         tiktok:'@princeaugusteezzz'   },
-  { id:'brabant', name:'Brabant',    image:'',                         tiktok:'@sunglassguy3'        },
-  { id:'iraq',    name:'Iraq',       image:'',                         tiktok:'@theprinceoffiraq'    },
-  { id:'persia',  name:'Persia',     image:'images/prince-persia.jpg', tiktok:'@clovis.fillion'      },
-  { id:'miami',   name:'Miami',      image:'',                         tiktok:'@calithekid1'         },
-  { id:'egypt',   name:'Egypt',      image:'',                         tiktok:'@princeegypt'         },
+  { id:'paris',   name:'Paris',       img:'images/prince-paris.jpg',  tt:'@princeoffparis'    },
+  { id:'sweden',  name:'Sweden',      img:'images/prince-sweden.jpg', tt:'@sippeee_g'          },
+  { id:'germany', name:'Germany',     img:'',                         tt:'@princeoffgermanyy'  },
+  { id:'holland', name:'Holland',     img:'',                         tt:'@sjorshelenklaken'   },
+  { id:'leeuw',   name:'Leeuwarden',  img:'images/prince-leeuw.jpg',  tt:'@nietsido'           },
+  { id:'dubai',   name:'Dubai',       img:'',                         tt:'@bader_es1'          },
+  { id:'italy',   name:'Italy',       img:'',                         tt:'@picasso_jr_'        },
+  { id:'norway',  name:'Norway',      img:'',                         tt:'@princeaugusteezzz'  },
+  { id:'brabant', name:'Brabant',     img:'',                         tt:'@sunglassguy3'       },
+  { id:'iraq',    name:'Iraq',        img:'',                         tt:'@theprinceoffiraq'   },
+  { id:'persia',  name:'Persia',      img:'images/prince-persia.jpg', tt:'@clovis.fillion'     },
+  { id:'miami',   name:'Miami',       img:'',                         tt:'@calithekid1'        },
+  { id:'egypt',   name:'Egypt',       img:'',                         tt:'@princeegypt'        },
 ];
 const PRINCESSES = [
-  { id:'poland',  name:'Poland',     image:'',                         tiktok:'@princessoffpoland'   },
-  { id:'cannes',  name:'Cannes',     image:'',                         tiktok:'@lyndaydl'            },
+  { id:'poland',  name:'Poland',      img:'',                         tt:'@princessoffpoland'  },
+  { id:'cannes',  name:'Cannes',      img:'',                         tt:'@lyndaydl'           },
 ];
 const ALL = [...PRINCES, ...PRINCESSES];
-const VALID_IDS = new Set(ALL.map(c => c.id));
+const VALID = new Set(ALL.map(c => c.id));
 
 /* ── TikTok icon ── */
-const TT_SVG = `<svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.27 8.27 0 0 0 4.84 1.55V7.05a4.85 4.85 0 0 1-1.07-.36z"/></svg>`;
+const TT = `<svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.27 8.27 0 0 0 4.84 1.55V7.05a4.85 4.85 0 0 1-1.07-.36z"/></svg>`;
 
-function ttUrl(h) { return `https://www.tiktok.com/${h.startsWith('@')?h:'@'+h}`; }
-function isPrincess(id) { return PRINCESSES.some(p => p.id === id); }
+function url(h) { return `https://www.tiktok.com/${h.startsWith('@')?h:'@'+h}`; }
+function isP(id) { return PRINCESSES.some(x => x.id === id); }
 
 /* ── Anti-abuse ── */
-const V_KEY = 'rm_v3', T_KEY = 'rm_t3', RATE = 86_400_000;
-function hasVoted()     { return !!localStorage.getItem(V_KEY); }
-function inWindow()     { const t=+localStorage.getItem(T_KEY)||0; return t && Date.now()-t<RATE; }
-function markVoted()    { localStorage.setItem(V_KEY,'1'); localStorage.setItem(T_KEY,Date.now()); }
-function alreadyVoted() { return hasVoted() || inWindow(); }
+const VK = 'rm_v4', TK = 'rm_t4', RATE = 86_400_000;
+function voted()   { return !!localStorage.getItem(VK); }
+function inWin()   { const t=+localStorage.getItem(TK)||0; return t && Date.now()-t < RATE; }
+function mark()    { localStorage.setItem(VK,'1'); localStorage.setItem(TK,String(Date.now())); }
+function blocked() { return voted() || inWin(); }
 
-/* ── Firebase init ── */
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+/* ── Firebase ── */
+const app  = initializeApp(cfg);
+const db   = getFirestore(app);
 const VDOC = doc(db, 'royalmog', 'votes');
 
-/* ── Real-time listener ── */
-onSnapshot(VDOC, snap => {
-  renderRankings(snap.exists() ? snap.data() : {});
-}, () => {
-  document.getElementById('rank-content').innerHTML =
-    `<div class="empty-state"><span class="ec">♛</span>Could not load rankings.</div>`;
-});
+/* ── Live listener ── */
+onSnapshot(VDOC,
+  snap => renderRankings(snap.exists() ? snap.data() : {}),
+  ()   => { document.getElementById('rc').innerHTML =
+    `<div class="empty"><span class="ecrown">♛</span>Could not load rankings. Check your connection.</div>`; }
+);
 
 /* ── Render rankings ── */
 function renderRankings(data) {
-  const sorted = ALL.map(c => ({...c, v: data[c.id]||0})).sort((a,b)=>b.v-a.v);
-  const tot    = sorted.reduce((s,c)=>s+c.v, 0);
-  const maxV   = Math.max(sorted[0]?.v||1, 1);
+  const sorted = ALL.map(c => ({...c, v: data[c.id]||0})).sort((a,b) => b.v-a.v);
+  const tot    = sorted.reduce((s,c) => s+c.v, 0);
+  const maxV   = Math.max(sorted[0]?.v || 1, 1);
 
-  document.getElementById('total-lbl').textContent = `${tot} vote${tot!==1?'s':''}`;
+  document.getElementById('tot').textContent = `${tot} vote${tot!==1?'s':''}`;
 
   if (tot === 0) {
-    document.getElementById('rank-content').innerHTML =
-      `<div class="empty-state"><span class="ec">♛</span>No votes yet.<br>Be the first to crown a royal.</div>`;
+    document.getElementById('rc').innerHTML =
+      `<div class="empty"><span class="ecrown">♛</span>No votes yet. Be the first to crown a royal.</div>`;
     return;
   }
 
-  /* Podium — order: [2nd, 1st, 3rd] so #1 appears visually centered & elevated */
+  /* PODIUM — visual order: 2nd | 1st | 3rd so #1 is centred */
   const top3 = sorted.slice(0, 3);
-  const podOrder = top3.length===1 ? [null,top3[0],null]
-                 : top3.length===2 ? [top3[1],top3[0],null]
-                 : [top3[1],top3[0],top3[2]];
-  const podCls   = ['p2','p1','p3'];
-  const podChip  = ['2nd Place','','3rd Place']; // p1 uses ::before ribbon
-  const podGlyph = ['♙','♛','♜'];
+  const vis = top3.length === 1 ? [null, top3[0], null]
+            : top3.length === 2 ? [top3[1], top3[0], null]
+            : [top3[1], top3[0], top3[2]];
+  const cls  = ['silver','gold','bronze'];
+  const bdge = ['2nd Place','1st Place','3rd Place'];
 
-  const podHTML = podOrder.map((c,i) => {
-    if (!c) return `<div class="pod ${podCls[i]}" style="visibility:hidden;pointer-events:none"></div>`;
-    const pct  = Math.round((c.v/tot)*100);
-    const type = isPrincess(c.id) ? 'Princess of' : 'Prince of';
-
-    const photoInner = c.image
-      ? `<img src="${c.image}" alt="${c.name}" onerror="this.parentElement.innerHTML='<div class=\\"pod-photo-placeholder\\">${podGlyph[i]}</div>'">`
-      : `<div class="pod-photo-placeholder">${podGlyph[i]}</div>`;
-
-    const chipHTML = podCls[i] !== 'p1'
-      ? `<div class="pod-chip">${podChip[i]}</div>` : '';
-
+  const podHTML = vis.map((c, i) => {
+    if (!c) return `<div class="pod ${cls[i]}" style="visibility:hidden"></div>`;
+    const pct = Math.round((c.v/tot)*100);
+    const lbl = isP(c.id) ? 'Princess of' : 'Prince of';
+    const ph  = c.img
+      ? `<img src="${c.img}" alt="${c.name}" onerror="this.parentElement.innerHTML='<div class=\\"pod-ph\\">♛</div>'">`
+      : `<div class="pod-ph">${i===1?'♛':'♔'}</div>`;
     return `
-      <div class="pod ${podCls[i]}">
-        <div class="pod-photo">
-          ${chipHTML}
-          ${photoInner}
+      <div class="pod ${cls[i]}">
+        <div class="pod-img">
+          <div class="pod-badge">${bdge[i]}</div>
+          ${ph}
         </div>
         <div class="pod-body">
-          <div class="pod-type">${type}</div>
+          <div class="pod-lbl">${lbl}</div>
           <div class="pod-name">${c.name}</div>
-          <div class="pod-votes">${c.v}</div>
+          <div class="pod-num">${c.v}</div>
           <div class="pod-pct">${pct}% of votes</div>
-          <a class="tt-btn" href="${ttUrl(c.tiktok)}" target="_blank" rel="noopener noreferrer">
-            ${TT_SVG} TikTok
-          </a>
+          <a class="tt-pill" href="${url(c.tt)}" target="_blank" rel="noopener">${TT} TikTok</a>
         </div>
       </div>`;
   }).join('');
 
-  /* Full list (4th+) */
+  /* LIST 4th+ */
   const rest = sorted.slice(3);
-  const listHTML = rest.map((c,i) => {
+  const listHTML = rest.map((c, i) => {
     const pct  = Math.round((c.v/tot)*100);
     const barW = Math.round((c.v/maxV)*100);
     return `
-      <div class="rank-row" style="animation-delay:${i*.04}s">
-        <div class="rank-num">${i+4}</div>
+      <div class="rrow" style="animation-delay:${i*.04}s">
+        <div class="rnum">${i+4}</div>
         <div>
-          <div class="rank-name">${c.name}</div>
-          <div class="rank-type">${isPrincess(c.id)?'Princess of':'Prince of'}</div>
+          <div class="rname">${c.name}</div>
+          <div class="rtype">${isP(c.id)?'Princess of':'Prince of'}</div>
         </div>
-        <div class="rank-bar">
-          <div class="rank-track"><div class="rank-fill" style="width:${barW}%"></div></div>
-        </div>
-        <div class="rank-pct">${pct}%</div>
-        <a class="rank-tt" href="${ttUrl(c.tiktok)}" target="_blank" rel="noopener noreferrer">
-          ${TT_SVG} TikTok
-        </a>
+        <div class="rbar"><div class="rtrack"><div class="rfill" style="width:${barW}%"></div></div></div>
+        <div class="rpct">${pct}%</div>
+        <a class="rtt" href="${url(c.tt)}" target="_blank" rel="noopener">${TT} TikTok</a>
       </div>`;
   }).join('');
 
-  document.getElementById('rank-content').innerHTML =
-    `<div class="podium">${podHTML}</div><div class="rank-list">${listHTML}</div>`;
+  document.getElementById('rc').innerHTML =
+    `<div class="podium">${podHTML}</div><div class="rlist">${listHTML}</div>`;
 }
 
-/* ── Build vote grid ── */
+/* ── Build vote cards ── */
 function buildGrid(gid, list, princess) {
-  const el = document.getElementById(gid);
   const glyph = princess ? '♛' : '♔';
-  el.innerHTML = list.map(c => {
-    const photoHTML = c.image
-      ? `<img src="${c.image}" alt="${c.name}"
-            onerror="this.parentElement.innerHTML='<div class=\\"c-placeholder\\">${glyph}</div>'">`
-      : `<div class="c-placeholder">${glyph}</div>`;
+  const lbl   = princess ? 'Princess of' : 'Prince of';
+  document.getElementById(gid).innerHTML = list.map(c => {
+    const ph = c.img
+      ? `<img src="${c.img}" alt="${c.name}" onerror="this.parentElement.innerHTML='<div class=\\"cc-ph\\">${glyph}</div>'">`
+      : `<div class="cc-ph">${glyph}</div>`;
     return `
-      <div class="cand-card" id="card-${c.id}" data-name="${c.name.toLowerCase()}">
-        <div class="c-check"><svg viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1"/></svg></div>
-        <div class="c-photo">${photoHTML}</div>
-        <div class="c-body">
-          <div class="c-type">${princess?'Princess of':'Prince of'}</div>
-          <div class="c-name">${c.name}</div>
-          <div class="c-footer">
-            <span class="c-hint">Tap to select</span>
-            <a class="c-tt" href="${ttUrl(c.tiktok)}" target="_blank" rel="noopener noreferrer">
-              ${TT_SVG} TikTok
-            </a>
+      <div class="cc" id="cc-${c.id}" data-n="${c.name.toLowerCase()}">
+        <div class="cc-chk"><svg viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1"/></svg></div>
+        <div class="cc-img">${ph}</div>
+        <div class="cc-info">
+          <div class="cc-lbl">${lbl}</div>
+          <div class="cc-name">${c.name}</div>
+          <div class="cc-foot">
+            <span class="cc-hint">Tap to select</span>
+            <a class="cc-tt" href="${url(c.tt)}" target="_blank" rel="noopener">${TT} TikTok</a>
           </div>
         </div>
       </div>`;
   }).join('');
 
   list.forEach(c => {
-    document.getElementById('card-'+c.id).addEventListener('click', e => {
-      if (e.target.closest('.c-tt')) return;
-      selectCand(c.id);
+    document.getElementById('cc-'+c.id).addEventListener('click', e => {
+      if (e.target.closest('.cc-tt')) return;
+      pick(c.id);
     });
   });
 }
 
 /* ── Selection ── */
-let selected = null;
+let sel = null;
 
-function selectCand(id) {
-  if (alreadyVoted()) { showToast('You have already cast your royal vote.','err'); return; }
-  selected = selected===id ? null : id;
-  document.querySelectorAll('.cand-card').forEach(el =>
-    el.classList.toggle('selected', el.id==='card-'+selected));
-  const btn = document.getElementById('vote-btn');
-  const lbl = document.getElementById('sel-lbl');
-  if (selected) {
-    const c = ALL.find(x=>x.id===selected);
+function pick(id) {
+  if (blocked()) { toast('You have already cast your royal vote.', 'err'); return; }
+  sel = sel===id ? null : id;
+  document.querySelectorAll('.cc').forEach(el => el.classList.toggle('sel', el.id==='cc-'+sel));
+  const btn = document.getElementById('vbtn');
+  const lbl = document.getElementById('vlbl');
+  if (sel) {
+    const c = ALL.find(x=>x.id===sel);
     btn.textContent = `Vote for ${c.name}`; btn.disabled = false;
     lbl.textContent = `Selected: ${c.name}`;
   } else {
@@ -863,84 +771,81 @@ function selectCand(id) {
   }
 }
 
-/* ── Submit ── */
-window.submitVote = async function() {
-  if (!selected)      { showToast('Please select a candidate first.','err'); return; }
-  if (alreadyVoted()) { showToast('You have already voted!','err'); return; }
-
-  const cid = selected;
-  const btn = document.getElementById('vote-btn');
+/* ── Vote ── */
+window.doVote = async function() {
+  if (!sel)      { toast('Please select a candidate first.','err'); return; }
+  if (blocked()) { toast('You have already voted!','err'); return; }
+  const cid = sel;
+  const btn = document.getElementById('vbtn');
   btn.disabled = true; btn.textContent = 'Casting…';
-
   try {
     await runTransaction(db, async tx => {
-      if (!VALID_IDS.has(cid)) throw new Error('Invalid candidate');
+      if (!VALID.has(cid)) throw new Error('Bad candidate');
       tx.set(VDOC, { [cid]: increment(1) }, { merge: true });
     });
-    markVoted();
+    mark();
     const c = ALL.find(x=>x.id===cid);
-    showToast(`Your vote for ${c.name} is cast. Long may they reign! ♛`, 'ok');
+    toast(`Your vote for ${c.name} is cast. Long may they reign! ♛`, 'ok');
     btn.style.display = 'none';
-    document.getElementById('sel-lbl').textContent = '';
-    document.getElementById('voted-chip').style.display = 'inline-flex';
-    document.querySelectorAll('.cand-card').forEach(el => {
+    document.getElementById('vlbl').textContent = '';
+    document.getElementById('vchip').style.display = 'inline-flex';
+    document.querySelectorAll('.cc').forEach(el => {
       el.style.pointerEvents = 'none';
-      el.style.opacity = el.id==='card-'+cid ? '1' : '.38';
+      el.style.opacity = el.id==='cc-'+cid ? '1' : '.35';
     });
-    selected = null;
+    sel = null;
   } catch(e) {
     console.error(e);
-    showToast('Something went wrong. Please try again.','err');
+    toast('Something went wrong. Please try again.','err');
     const c = ALL.find(x=>x.id===cid);
     btn.disabled = false;
     btn.textContent = c ? `Vote for ${c.name}` : 'Select a Royal First';
   }
 };
 
-/* ── Filter ── */
-window.doFilter = function() {
-  const q = document.getElementById('srch').value.toLowerCase().trim();
+/* ── Search ── */
+window.doSearch = function() {
+  const q = document.getElementById('sinput').value.toLowerCase().trim();
   let vP=0, vPr=0;
   PRINCES.forEach(c => {
-    const hide = q && !c.name.toLowerCase().includes(q);
-    document.getElementById('card-'+c.id).classList.toggle('hidden', hide);
-    if (!hide) vP++;
+    const h = q && !c.name.toLowerCase().includes(q);
+    document.getElementById('cc-'+c.id).classList.toggle('hide', h);
+    if (!h) vP++;
   });
   PRINCESSES.forEach(c => {
-    const hide = q && !c.name.toLowerCase().includes(q);
-    document.getElementById('card-'+c.id).classList.toggle('hidden', hide);
-    if (!hide) vPr++;
+    const h = q && !c.name.toLowerCase().includes(q);
+    document.getElementById('cc-'+c.id).classList.toggle('hide', h);
+    if (!h) vPr++;
   });
-  document.getElementById('lbl-p').style.display  = vP  ? '' : 'none';
-  document.getElementById('lbl-pr').style.display = vPr ? '' : 'none';
-  document.getElementById('no-res').style.display = (!vP&&!vPr) ? 'block' : 'none';
-};
-
-/* ── Toast ── */
-let tT;
-window.showToast = function(msg, type) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.className = `toast show ${type}`;
-  clearTimeout(tT); tT = setTimeout(()=>el.classList.remove('show'), 4500);
+  document.getElementById('lp').style.display   = vP  ? '' : 'none';
+  document.getElementById('lpr').style.display  = vPr ? '' : 'none';
+  document.getElementById('nores').style.display = (!vP&&!vPr) ? 'block' : 'none';
 };
 
 /* ── Tab switch ── */
-window.switchTab = function(id, btn) {
-  document.querySelectorAll('.nav-pill').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('panel-'+id).classList.add('active');
+window.go = function(id, btn) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('panel-'+id).classList.add('on');
 };
 
-/* ── Init ── */
-buildGrid('grid-p',  PRINCES,    false);
-buildGrid('grid-pr', PRINCESSES, true);
+/* ── Toast ── */
+let tTmr;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast show ${type}`;
+  clearTimeout(tTmr); tTmr = setTimeout(()=>el.classList.remove('show'), 4500);
+}
 
-if (alreadyVoted()) {
-  const btn = document.getElementById('vote-btn');
-  btn.disabled = true; btn.style.display = 'none';
-  document.getElementById('voted-chip').style.display = 'inline-flex';
-  document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents='none');
+/* ── Init ── */
+buildGrid('gp',  PRINCES,    false);
+buildGrid('gpr', PRINCESSES, true);
+
+if (blocked()) {
+  document.getElementById('vbtn').style.display = 'none';
+  document.getElementById('vchip').style.display = 'inline-flex';
+  document.querySelectorAll('.cc').forEach(el => el.style.pointerEvents='none');
 }
 </script>
 </body>
