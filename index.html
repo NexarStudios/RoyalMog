@@ -35,7 +35,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* grain */
 body::after {
   content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
@@ -48,37 +47,17 @@ body::after {
 
 /* HEADER */
 header { position:relative; z-index:10; text-align:center; padding:3.2rem 2rem 0; }
-
-.header-eyebrow {
-  font-size:10px; font-weight:500; letter-spacing:5px;
-  text-transform:uppercase; color:var(--gold); opacity:.65; margin-bottom:1.4rem;
-}
-
+.header-eyebrow { font-size:10px; font-weight:500; letter-spacing:5px; text-transform:uppercase; color:var(--gold); opacity:.65; margin-bottom:1.4rem; }
 .header-logo img { max-width:380px; width:85%; display:block; margin:0 auto; filter:drop-shadow(0 2px 30px rgba(200,168,75,.22)); }
-.header-logo .fallback {
-  font-family:'Cormorant SC',serif; font-size:clamp(2.2rem,6vw,3.8rem);
-  font-weight:600; color:var(--gold2); letter-spacing:8px; display:none;
-}
-
+.header-logo .fallback { font-family:'Cormorant SC',serif; font-size:clamp(2.2rem,6vw,3.8rem); font-weight:600; color:var(--gold2); letter-spacing:8px; display:none; }
 .header-tagline { font-family:'Libre Baskerville',serif; font-style:italic; font-size:15px; color:var(--text2); margin-top:.5rem; }
 .header-rule { width:60px; height:1px; margin:1.6rem auto 0; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
 
 /* TABS */
-.tabs-wrap {
-  position:sticky; top:0; z-index:100;
-  background:rgba(11,11,15,.92); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-  border-bottom:1px solid var(--border); margin-top:2rem;
-}
+.tabs-wrap { position:sticky; top:0; z-index:100; background:rgba(11,11,15,.92); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border-bottom:1px solid var(--border); margin-top:2rem; }
 .tabs { max-width:880px; margin:0 auto; display:flex; padding:0 2rem; }
-.tab {
-  font-size:11px; font-weight:500; letter-spacing:3.5px; text-transform:uppercase;
-  color:var(--text3); padding:1.1rem 1.5rem; cursor:pointer; border:none; background:none;
-  position:relative; transition:color .2s;
-}
-.tab::after {
-  content:''; position:absolute; bottom:-1px; left:0; right:0;
-  height:2px; background:var(--gold); transform:scaleX(0); transition:transform .25s ease;
-}
+.tab { font-size:11px; font-weight:500; letter-spacing:3.5px; text-transform:uppercase; color:var(--text3); padding:1.1rem 1.5rem; cursor:pointer; border:none; background:none; position:relative; transition:color .2s; }
+.tab::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:var(--gold); transform:scaleX(0); transition:transform .25s ease; }
 .tab:hover { color:var(--text2); }
 .tab.active { color:var(--gold2); }
 .tab.active::after { transform:scaleX(1); }
@@ -87,7 +66,6 @@ header { position:relative; z-index:10; text-align:center; padding:3.2rem 2rem 0
 .panels { max-width:880px; margin:0 auto; padding:0 2rem 5rem; }
 .panel { display:none; padding-top:2.8rem; }
 .panel.active { display:block; animation:fadeUp .32s ease both; }
-
 @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
 
 /* SECTION HEAD */
@@ -95,37 +73,57 @@ header { position:relative; z-index:10; text-align:center; padding:3.2rem 2rem 0
 .section-title { font-family:'Cormorant SC',serif; font-size:24px; font-weight:500; letter-spacing:3px; }
 .section-meta  { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); }
 
+/* ─── PROFILE IMAGE ─── */
+.avatar-wrap {
+  width:52px; height:52px; border-radius:50%;
+  overflow:hidden; flex-shrink:0;
+  border:1.5px solid var(--border2);
+  background:var(--surface2);
+  display:flex; align-items:center; justify-content:center;
+}
+.avatar-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+.avatar-fallback { font-size:20px; line-height:1; }
+
+/* Podium avatar — slightly bigger */
+.pod-avatar-wrap {
+  width:64px; height:64px; border-radius:50%;
+  overflow:hidden; margin:0 auto .7rem;
+  border:2px solid var(--border2);
+  background:var(--surface2);
+  display:flex; align-items:center; justify-content:center;
+}
+.pod-card.p1 .pod-avatar-wrap { width:76px; height:76px; border-color:rgba(200,168,75,.55); }
+.pod-avatar-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+.pod-avatar-fallback { font-size:26px; line-height:1; }
+.pod-card.p1 .pod-avatar-fallback { font-size:32px; }
+
+/* Candidate card avatar */
+.cand-avatar-wrap {
+  width:54px; height:54px; border-radius:50%;
+  overflow:hidden; margin:0 auto .65rem;
+  border:1.5px solid var(--border2);
+  background:var(--surface2);
+  display:flex; align-items:center; justify-content:center;
+}
+.cand-card.selected .cand-avatar-wrap { border-color:var(--gold); }
+.cand-avatar-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+.cand-avatar-fallback { font-size:22px; line-height:1; }
+
 /* PODIUM */
 .podium { display:grid; grid-template-columns:1fr 1.1fr 1fr; gap:10px; margin-bottom:2.2rem; align-items:end; }
-
-.pod-card {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius); padding:1.5rem .8rem 1.2rem; text-align:center; transition:border-color .2s;
-}
+.pod-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem .8rem 1.2rem; text-align:center; transition:border-color .2s; }
 .pod-card.p1 { border-color:rgba(200,168,75,.38); background:linear-gradient(170deg,#15141e,#111118); box-shadow:0 0 50px rgba(200,168,75,.07); }
-
 .pod-medal { font-size:10px; letter-spacing:3px; text-transform:uppercase; margin-bottom:.75rem; }
 .pod-card.p1 .pod-medal { color:var(--gold); }
 .pod-card.p2 .pod-medal { color:#9a9aaa; }
 .pod-card.p3 .pod-medal { color:#9a7a58; }
-
-.pod-glyph { font-size:26px; display:block; margin-bottom:6px; line-height:1; }
-.pod-card.p1 .pod-glyph { font-size:32px; }
-
 .pod-type { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:3px; }
 .pod-name { font-family:'Libre Baskerville',serif; font-size:15px; font-weight:700; color:var(--text); margin-bottom:.5rem; }
 .pod-card.p1 .pod-name { font-size:18px; color:var(--gold2); }
 .pod-votes { font-family:'Cormorant SC',serif; font-size:20px; color:var(--text2); }
 .pod-card.p1 .pod-votes { font-size:26px; color:var(--gold2); }
 .pod-pct { font-size:10px; color:var(--text3); margin-top:1px; margin-bottom:.7rem; }
-
-.pod-tt {
-  display:inline-flex; align-items:center; gap:5px;
-  font-size:10px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase;
-  color:var(--tiktok); background:rgba(254,44,85,.1); border:1px solid rgba(254,44,85,.25);
-  padding:4px 10px; border-radius:20px; text-decoration:none;
-  transition:background .18s, border-color .18s;
-}
+.pod-tt { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--tiktok); background:rgba(254,44,85,.1); border:1px solid rgba(254,44,85,.25); padding:4px 10px; border-radius:20px; text-decoration:none; transition:background .18s, border-color .18s; }
 .pod-tt:hover { background:rgba(254,44,85,.2); border-color:rgba(254,44,85,.5); }
 .pod-tt svg { width:10px; height:10px; fill:currentColor; }
 
@@ -133,8 +131,9 @@ header { position:relative; z-index:10; text-align:center; padding:3.2rem 2rem 0
 .rank-list { display:flex; flex-direction:column; gap:3px; }
 
 .rank-row {
-  display:grid; grid-template-columns:34px 1fr 110px 46px 80px;
-  align-items:center; gap:12px; padding:9px 14px;
+  display:grid;
+  grid-template-columns: 28px 46px 1fr 110px 58px 80px;
+  align-items:center; gap:10px; padding:9px 14px;
   border-radius:var(--radius-sm); background:var(--surface); border:1px solid transparent;
   transition:background .15s,border-color .15s; animation:rowIn .4s ease both;
 }
@@ -142,20 +141,34 @@ header { position:relative; z-index:10; text-align:center; padding:3.2rem 2rem 0
 .rank-row:hover { background:var(--surface2); border-color:var(--border); }
 
 .rank-num { font-family:'Cormorant SC',serif; font-size:14px; color:var(--text3); text-align:center; }
+
+/* rank-row avatar */
+.rank-avatar {
+  width:36px; height:36px; border-radius:50%;
+  overflow:hidden; flex-shrink:0;
+  border:1px solid var(--border2);
+  background:var(--surface2);
+  display:flex; align-items:center; justify-content:center;
+}
+.rank-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+.rank-avatar-fallback { font-size:15px; line-height:1; }
+
 .rank-name { font-size:13px; font-weight:400; color:var(--text); }
 .rank-type { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin-top:1px; }
+
 .rank-bar  { display:flex; align-items:center; gap:6px; }
 .rank-track { flex:1; height:3px; background:rgba(255,255,255,.05); border-radius:2px; overflow:hidden; }
 .rank-fill  { height:3px; background:linear-gradient(90deg,var(--gold),var(--gold2)); border-radius:2px; transition:width .9s cubic-bezier(.4,0,.2,1); }
-.rank-pct  { font-size:11px; color:var(--text3); font-weight:500; min-width:32px; text-align:right; }
 
-.rank-tt {
-  display:inline-flex; align-items:center; gap:4px;
-  font-size:9.5px; font-weight:500; letter-spacing:1px; text-transform:uppercase;
-  color:var(--tiktok); background:rgba(254,44,85,.08); border:1px solid rgba(254,44,85,.2);
-  padding:3px 9px; border-radius:20px; text-decoration:none; white-space:nowrap;
-  transition:background .18s, border-color .18s;
+/* always-visible vote count */
+.rank-vcount {
+  font-family:'Cormorant SC',serif;
+  font-size:14px; color:var(--text2);
+  text-align:right; white-space:nowrap;
+  min-width:36px;
 }
+
+.rank-tt { display:inline-flex; align-items:center; gap:4px; font-size:9.5px; font-weight:500; letter-spacing:1px; text-transform:uppercase; color:var(--tiktok); background:rgba(254,44,85,.08); border:1px solid rgba(254,44,85,.2); padding:3px 9px; border-radius:20px; text-decoration:none; white-space:nowrap; transition:background .18s, border-color .18s; }
 .rank-tt:hover { background:rgba(254,44,85,.18); border-color:rgba(254,44,85,.45); }
 .rank-tt svg { width:9px; height:9px; fill:currentColor; flex-shrink:0; }
 
@@ -164,10 +177,7 @@ header { position:relative; z-index:10; text-align:center; padding:3.2rem 2rem 0
 
 /* LOADING STATE */
 .loading-state { text-align:center; padding:3rem 2rem; color:var(--text3); font-size:13px; letter-spacing:2px; text-transform:uppercase; }
-.spinner {
-  width:24px; height:24px; border:2px solid var(--border2); border-top-color:var(--gold);
-  border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 1rem;
-}
+.spinner { width:24px; height:24px; border:2px solid var(--border2); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 1rem; }
 @keyframes spin { to{transform:rotate(360deg)} }
 
 /* VOTE PANEL */
@@ -179,100 +189,78 @@ header { position:relative; z-index:10; text-align:center; padding:3.2rem 2rem 0
 .search-wrap { position:relative; margin-bottom:1.8rem; }
 .search-ico  { position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--text3); pointer-events:none; }
 .search-ico svg { display:block; width:16px; height:16px; }
-.search-input {
-  width:100%; background:var(--surface); border:1px solid var(--border2);
-  border-radius:var(--radius); color:var(--text);
-  font-family:'DM Sans',sans-serif; font-size:14px; font-weight:300;
-  padding:.88rem 1rem .88rem 42px; outline:none;
-  transition:border-color .2s,box-shadow .2s;
-}
+.search-input { width:100%; background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius); color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:300; padding:.88rem 1rem .88rem 42px; outline:none; transition:border-color .2s,box-shadow .2s; }
 .search-input::placeholder { color:var(--text3); }
 .search-input:focus { border-color:rgba(200,168,75,.45); box-shadow:0 0 0 3px rgba(200,168,75,.07); }
 
 /* CANDIDATE GRID */
-.cand-sec-label {
-  font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--text3);
-  margin:2rem 0 .9rem; padding-bottom:.5rem; border-bottom:1px solid var(--border);
-}
-
+.cand-sec-label { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--text3); margin:2rem 0 .9rem; padding-bottom:.5rem; border-bottom:1px solid var(--border); }
 .cand-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:9px; }
-
-.cand-card {
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
-  padding:1.2rem .85rem .9rem; cursor:pointer; text-align:center;
-  transition:background .16s,border-color .16s,transform .16s,box-shadow .16s;
-  user-select:none; position:relative; overflow:hidden;
-}
+.cand-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.2rem .85rem .9rem; cursor:pointer; text-align:center; transition:background .16s,border-color .16s,transform .16s,box-shadow .16s; user-select:none; position:relative; overflow:hidden; }
 .cand-card:hover { background:var(--surface2); border-color:var(--border2); transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.32); }
 .cand-card.selected { background:#161521; border-color:var(--gold); box-shadow:0 0 0 1px var(--gold),0 6px 24px rgba(200,168,75,.13); transform:translateY(-2px); }
 .cand-card.hidden { display:none; }
-
-.cand-check {
-  position:absolute; top:8px; right:9px; width:16px; height:16px; border-radius:50%;
-  background:var(--gold); display:flex; align-items:center; justify-content:center;
-  opacity:0; transform:scale(.5); transition:opacity .17s,transform .17s;
-}
+.cand-check { position:absolute; top:8px; right:9px; width:16px; height:16px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; opacity:0; transform:scale(.5); transition:opacity .17s,transform .17s; }
 .cand-check svg { width:9px; height:9px; stroke:#0b0b0f; stroke-width:2.5; fill:none; }
 .cand-card.selected .cand-check { opacity:1; transform:scale(1); }
-
-.cand-glyph { font-size:22px; display:block; margin-bottom:6px; line-height:1; }
 .cand-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:3px; }
 .cand-name  { font-family:'Libre Baskerville',serif; font-size:13px; font-weight:700; color:var(--text); line-height:1.25; margin-bottom:8px; }
-
-/* TikTok button on candidate card */
-.cand-tt {
-  display:inline-flex; align-items:center; justify-content:center; gap:4px;
-  font-size:9px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase;
-  color:var(--tiktok); background:rgba(254,44,85,.08); border:1px solid rgba(254,44,85,.2);
-  padding:3px 9px; border-radius:20px; text-decoration:none;
-  transition:background .18s,border-color .18s; position:relative; z-index:5;
-}
+.cand-tt { display:inline-flex; align-items:center; justify-content:center; gap:4px; font-size:9px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--tiktok); background:rgba(254,44,85,.08); border:1px solid rgba(254,44,85,.2); padding:3px 9px; border-radius:20px; text-decoration:none; transition:background .18s,border-color .18s; position:relative; z-index:5; }
 .cand-tt:hover { background:rgba(254,44,85,.2); border-color:rgba(254,44,85,.45); }
 .cand-tt svg { width:9px; height:9px; fill:currentColor; }
-
 .no-results { text-align:center; padding:2.5rem; color:var(--text3); font-style:italic; font-family:'Libre Baskerville',serif; display:none; }
 
 /* VOTE ACTION */
 .vote-action { display:flex; align-items:center; gap:14px; margin-top:2.2rem; flex-wrap:wrap; }
-
-.btn-primary {
-  font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
-  background:var(--gold); color:#0b0b0f; border:none; padding:.9rem 2.2rem; border-radius:50px;
-  cursor:pointer; transition:background .18s,transform .14s,box-shadow .18s;
-  box-shadow:0 4px 20px rgba(200,168,75,.28);
-}
+.btn-primary { font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; background:var(--gold); color:#0b0b0f; border:none; padding:.9rem 2.2rem; border-radius:50px; cursor:pointer; transition:background .18s,transform .14s,box-shadow .18s; box-shadow:0 4px 20px rgba(200,168,75,.28); }
 .btn-primary:hover { background:var(--gold2); transform:translateY(-1px); box-shadow:0 6px 28px rgba(200,168,75,.4); }
 .btn-primary:active { transform:scale(.97); }
 .btn-primary:disabled { opacity:.3; cursor:not-allowed; transform:none; box-shadow:none; }
 
-.voted-badge {
-  display:none; align-items:center; gap:7px; font-size:12px; color:var(--gold);
-  border:1px solid rgba(200,168,75,.3); background:rgba(200,168,75,.07);
-  padding:.5rem 1.1rem; border-radius:50px;
+/* ─── 24h cooldown banner ─── */
+.cooldown-banner {
+  display:none;
+  align-items:center; gap:10px;
+  background:rgba(200,168,75,.07);
+  border:1px solid rgba(200,168,75,.28);
+  border-radius:var(--radius);
+  padding:.9rem 1.4rem;
+  margin-top:1.6rem;
 }
+.cooldown-banner.show { display:flex; }
+.cooldown-icon { font-size:18px; }
+.cooldown-text { flex:1; }
+.cooldown-title { font-size:13px; font-weight:600; color:var(--gold2); margin-bottom:2px; }
+.cooldown-sub { font-size:11px; color:var(--text3); letter-spacing:.5px; }
+.cooldown-timer { font-family:'Cormorant SC',serif; font-size:20px; color:var(--gold); min-width:64px; text-align:right; }
+
+.voted-badge { display:none; align-items:center; gap:7px; font-size:12px; color:var(--gold); border:1px solid rgba(200,168,75,.3); background:rgba(200,168,75,.07); padding:.5rem 1.1rem; border-radius:50px; }
 
 /* TOAST */
-.toast {
-  position:fixed; bottom:2rem; left:50%;
-  transform:translateX(-50%) translateY(16px);
-  background:var(--surface2); border:1px solid var(--border2); border-radius:50px;
-  padding:.75rem 1.6rem; font-size:13px; color:var(--text); white-space:nowrap;
-  opacity:0; pointer-events:none; z-index:9998;
-  transition:opacity .22s,transform .22s; box-shadow:0 8px 32px rgba(0,0,0,.5);
-}
+.toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(16px); background:var(--surface2); border:1px solid var(--border2); border-radius:50px; padding:.75rem 1.6rem; font-size:13px; color:var(--text); white-space:nowrap; opacity:0; pointer-events:none; z-index:9998; transition:opacity .22s,transform .22s; box-shadow:0 8px 32px rgba(0,0,0,.5); }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 .toast.success { border-color:rgba(200,168,75,.4); color:var(--gold2); }
 .toast.error   { border-color:rgba(200,80,80,.3); color:#e08080; }
 
-/* RESPONSIVE */
+/* ─── RESPONSIVE ─── */
 @media (max-width:600px) {
   .panels { padding:0 1rem 4rem; }
   .tabs { padding:0 .8rem; }
   .podium { gap:6px; }
   .pod-card { padding:1rem .5rem .8rem; }
   .pod-name { font-size:12px; }
-  .rank-row { grid-template-columns:26px 1fr 60px; gap:8px; }
-  .rank-bar,.rank-pct,.rank-tt { display:none; }
+  .pod-avatar-wrap { width:50px; height:50px; }
+  .pod-card.p1 .pod-avatar-wrap { width:58px; height:58px; }
+
+  /* On mobile: show num + avatar + name/type + vote count. Hide bar & TikTok */
+  .rank-row {
+    grid-template-columns: 22px 36px 1fr 42px;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .rank-bar, .rank-tt { display:none; }
+  .rank-vcount { font-size:13px; }
+
   .cand-grid { grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); }
 }
 </style>
@@ -342,24 +330,28 @@ header { position:relative; z-index:10; text-align:center; padding:3.2rem 2rem 0
         Your vote is recorded
       </div>
     </div>
+
+    <!-- 24h cooldown banner -->
+    <div class="cooldown-banner" id="cooldown-banner">
+      <span class="cooldown-icon">⏳</span>
+      <div class="cooldown-text">
+        <div class="cooldown-title">You can vote again in</div>
+        <div class="cooldown-sub">One vote per royal subject every 24 hours</div>
+      </div>
+      <div class="cooldown-timer" id="cooldown-timer">–</div>
+    </div>
   </div>
 
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     FIREBASE SDK  (modular v10 via CDN)
-     ═══════════════════════════════════════════════════════════ -->
 <script type="module">
 import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, getDoc, onSnapshot,
+import { getFirestore, doc, onSnapshot,
          runTransaction, increment }              from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getAnalytics }                           from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 
-/* ═══════════════════════════════════════════
-   🔧  PASTE YOUR FIREBASE CONFIG HERE
-   ═══════════════════════════════════════════ */
 const firebaseConfig = {
   apiKey:            "AIzaSyAHMkMwjU4B78ItURh5rD2nvXyq4lFwzAs",
   authDomain:        "royalmog-a8a40.firebaseapp.com",
@@ -370,10 +362,6 @@ const firebaseConfig = {
   measurementId:     "G-9JJMYHF1GB"
 };
 
-/* ═══════════════════════════════════════════════════════════
-   DATA — candidates + their TikTok handles
-   Add/change tiktok: '@handle' for each royal.
-   ═══════════════════════════════════════════════════════════ */
 const PRINCES = [
   { id:'paris',    name:'Paris',       tiktok:'@princeoffparis' },
   { id:'sweden',   name:'Sweden',      tiktok:'@sippeee_g' },
@@ -388,7 +376,6 @@ const PRINCES = [
   { id:'persia',   name:'Persia',      tiktok:'@clovis.fillion' },
   { id:'miami',    name:'Miami',       tiktok:'@calithekid1' },
   { id:'egypt',    name:'Egypt',       tiktok:'@princeegypt' },
-
   { id:'utrecht',  name:'Utrecht',     tiktok:'@christiaan_devierde' },
   { id:'belgium',  name:'Belgium',     tiktok:'@finlaystp' },
 ];
@@ -398,27 +385,79 @@ const PRINCESSES = [
 ];
 const ALL = [...PRINCES, ...PRINCESSES];
 
-/* ─── TikTok SVG icon ─── */
 const TT_ICON = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.27 8.27 0 0 0 4.84 1.55V7.05a4.85 4.85 0 0 1-1.07-.36z"/></svg>`;
 
-function ttUrl(handle) {
-  return `https://www.tiktok.com/${handle.startsWith('@') ? handle : '@'+handle}`;
-}
-
+function ttUrl(handle) { return `https://www.tiktok.com/${handle.startsWith('@') ? handle : '@'+handle}`; }
 function isPrincess(id) { return PRINCESSES.some(p => p.id === id); }
 
-/* ─── Anti-abuse helpers ─── */
-const VOTED_KEY = 'rm_voted_v1';
-const VOTE_TS   = 'rm_vote_ts';
-const RATE_MS   = 86400000; // 24h client-side guard (server rule is the real lock)
+/* ─── Profile image helpers ─── */
+// Tries images/prince-{id}.jpg (or princess-{id}.jpg) from GitHub images folder
+function imgPath(c) {
+  const prefix = isPrincess(c.id) ? 'princess' : 'prince';
+  return `images/${prefix}-${c.id}.jpg`;
+}
 
-function hasVoted()  { return !!localStorage.getItem(VOTED_KEY); }
-function markVoted() { localStorage.setItem(VOTED_KEY, '1'); localStorage.setItem(VOTE_TS, Date.now()); }
+// Returns an <img> that falls back to glyph if 404
+function avatarImg(c, wrapClass, fallbackClass, glyph) {
+  const src = imgPath(c);
+  return `<div class="${wrapClass}">
+    <img src="${src}" alt="${c.name}"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <span class="${fallbackClass}" style="display:none">${glyph}</span>
+  </div>`;
+}
 
-/* Rate-limit: if somehow flag cleared, still block within 24h */
-function withinRateWindow() {
-  const ts = parseInt(localStorage.getItem(VOTE_TS) || '0');
-  return ts && (Date.now() - ts < RATE_MS);
+/* ─── 24h cooldown ─── */
+const VOTE_TS_KEY = 'rm_vote_ts_v2';
+const RATE_MS     = 86400000; // 24 hours
+
+function getVoteTimestamp() { return parseInt(localStorage.getItem(VOTE_TS_KEY) || '0'); }
+function markVoted()        { localStorage.setItem(VOTE_TS_KEY, Date.now()); }
+function msUntilNextVote()  {
+  const ts = getVoteTimestamp();
+  if (!ts) return 0;
+  const remaining = RATE_MS - (Date.now() - ts);
+  return remaining > 0 ? remaining : 0;
+}
+function canVote() { return msUntilNextVote() === 0; }
+
+/* ─── Countdown timer ─── */
+let countdownInterval = null;
+function formatCountdown(ms) {
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function startCooldownDisplay() {
+  clearInterval(countdownInterval);
+  const banner = document.getElementById('cooldown-banner');
+  const timerEl = document.getElementById('cooldown-timer');
+  const btn = document.getElementById('vote-btn');
+  const badge = document.getElementById('voted-badge');
+
+  function tick() {
+    const rem = msUntilNextVote();
+    if (rem <= 0) {
+      clearInterval(countdownInterval);
+      banner.classList.remove('show');
+      btn.style.display = '';
+      btn.disabled = true;
+      btn.textContent = 'Select a Royal First';
+      badge.style.display = 'none';
+      document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents = '');
+      return;
+    }
+    timerEl.textContent = formatCountdown(rem);
+  }
+
+  banner.classList.add('show');
+  btn.style.display = 'none';
+  badge.style.display = 'inline-flex';
+  document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents = 'none');
+  tick();
+  countdownInterval = setInterval(tick, 1000);
 }
 
 /* ─── Firebase init ─── */
@@ -428,7 +467,6 @@ try { getAnalytics(app); } catch(_) {}
 
 const VOTES_DOC = doc(db, 'royalmog', 'votes');
 
-/* ─── Real-time listener → re-render rankings ─── */
 onSnapshot(VOTES_DOC, snap => {
   const data = snap.exists() ? snap.data() : {};
   renderRankings(data);
@@ -447,8 +485,8 @@ function renderRankings(data) {
   document.getElementById('total-label').textContent = `${tot} vote${tot!==1?'s':''} cast`;
 
   if (tot === 0) {
-    document.getElementById('rankings-content').innerHTML = `
-      <div class="empty-state"><span class="e-crown">♛</span>No votes yet.<br>Be the first to crown a royal.</div>`;
+    document.getElementById('rankings-content').innerHTML =
+      `<div class="empty-state"><span class="e-crown">♛</span>No votes yet.<br>Be the first to crown a royal.</div>`;
     return;
   }
 
@@ -459,7 +497,6 @@ function renderRankings(data) {
                : [top3[1], top3[0], top3[2]];
   const pCls   = ['p2','p1','p3'];
   const pMedal = ['2nd Place','1st Place','3rd Place'];
-  const pGlyph = ['♙','♛','♜'];
 
   const podHTML = podOrd.map((c,i) => {
     if (!c) return `<div class="pod-card" style="visibility:hidden"></div>`;
@@ -467,7 +504,7 @@ function renderRankings(data) {
     return `
       <div class="pod-card ${pCls[i]}">
         <div class="pod-medal">${pMedal[i]}</div>
-        <span class="pod-glyph">${pGlyph[i]}</span>
+        ${avatarImg(c,'pod-avatar-wrap','pod-avatar-fallback', isPrincess(c.id)?'♛':'♔')}
         <div class="pod-type">${isPrincess(c.id)?'Princess of':'Prince of'}</div>
         <div class="pod-name">${c.name}</div>
         <div class="pod-votes">${c.v}</div>
@@ -484,6 +521,7 @@ function renderRankings(data) {
     return `
       <div class="rank-row" style="animation-delay:${i*0.04}s">
         <div class="rank-num">${i+4}</div>
+        ${avatarImg(c,'rank-avatar','rank-avatar-fallback', isPrincess(c.id)?'♛':'♔')}
         <div>
           <div class="rank-name">${c.name}</div>
           <div class="rank-type">${isPrincess(c.id)?'Princess of':'Prince of'}</div>
@@ -491,7 +529,7 @@ function renderRankings(data) {
         <div class="rank-bar">
           <div class="rank-track"><div class="rank-fill" style="width:${barW}%"></div></div>
         </div>
-        <div class="rank-pct">${pct}%</div>
+        <div class="rank-vcount">${c.v} <span style="font-size:10px;color:var(--text3)">${pct}%</span></div>
         <a class="rank-tt" href="${ttUrl(c.tiktok)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">
           ${TT_ICON} TikTok
         </a>
@@ -507,7 +545,7 @@ function buildGrid(gridId, list, princessFlag) {
   document.getElementById(gridId).innerHTML = list.map(c => `
     <div class="cand-card" id="card-${c.id}" data-name="${c.name.toLowerCase()}">
       <div class="cand-check"><svg viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1"/></svg></div>
-      <span class="cand-glyph">${princessFlag ? '♛' : '♔'}</span>
+      ${avatarImg(c,'cand-avatar-wrap','cand-avatar-fallback', princessFlag?'♛':'♔')}
       <div class="cand-label">${princessFlag ? 'Princess of' : 'Prince of'}</div>
       <div class="cand-name">${c.name}</div>
       <a class="cand-tt" href="${ttUrl(c.tiktok)}" target="_blank" rel="noopener noreferrer">
@@ -515,10 +553,9 @@ function buildGrid(gridId, list, princessFlag) {
       </a>
     </div>`).join('');
 
-  // Attach click on card (not on the TikTok link)
   list.forEach(c => {
     document.getElementById('card-'+c.id).addEventListener('click', e => {
-      if (e.target.closest('.cand-tt')) return; // don't select when clicking TikTok
+      if (e.target.closest('.cand-tt')) return;
       selectCand(c.id);
     });
   });
@@ -526,11 +563,10 @@ function buildGrid(gridId, list, princessFlag) {
 
 /* ─── Selection ─── */
 let selected = null;
-window._selected = () => selected; // expose for submit
 
 function selectCand(id) {
-  if (hasVoted() || withinRateWindow()) {
-    showToast('You have already cast your royal vote.', 'error'); return;
+  if (!canVote()) {
+    showToast('You have already voted today. Come back tomorrow!', 'error'); return;
   }
   selected = selected === id ? null : id;
   document.querySelectorAll('.cand-card').forEach(el =>
@@ -546,10 +582,10 @@ function selectCand(id) {
   }
 }
 
-/* ─── Submit vote via Firestore transaction ─── */
+/* ─── Submit vote ─── */
 window.submitVote = async function() {
-  if (!selected)                        { showToast('Please select a candidate first.', 'error'); return; }
-  if (hasVoted() || withinRateWindow()) { showToast('You have already voted!', 'error'); return; }
+  if (!selected)   { showToast('Please select a candidate first.', 'error'); return; }
+  if (!canVote())  { showToast('You have already voted today!', 'error'); return; }
 
   const btn = document.getElementById('vote-btn');
   btn.disabled = true;
@@ -559,8 +595,7 @@ window.submitVote = async function() {
 
   try {
     await runTransaction(db, async tx => {
-      const snap = await tx.get(VOTES_DOC);
-      // Validate candidateId is a known royal — prevent arbitrary writes
+      await tx.get(VOTES_DOC); // read for transaction
       if (!ALL.some(c => c.id === candidateId)) throw new Error('Invalid candidate');
       tx.set(VOTES_DOC, { [candidateId]: increment(1) }, { merge: true });
     });
@@ -568,11 +603,10 @@ window.submitVote = async function() {
     markVoted();
     const c = ALL.find(x => x.id === candidateId);
     showToast(`Your vote for ${c.name} has been cast. Long may they reign.`, 'success');
-
-    btn.style.display = 'none';
-    document.getElementById('voted-badge').style.display = 'inline-flex';
-    document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents = 'none');
     selected = null;
+
+    // Show cooldown banner with live countdown
+    startCooldownDisplay();
 
   } catch(err) {
     console.error(err);
@@ -624,11 +658,9 @@ window.switchTab = function(id, btn) {
 buildGrid('grid-princes', PRINCES, false);
 buildGrid('grid-princesses', PRINCESSES, true);
 
-if (hasVoted() || withinRateWindow()) {
-  document.getElementById('vote-btn').disabled = true;
-  document.getElementById('vote-btn').style.display = 'none';
-  document.getElementById('voted-badge').style.display = 'inline-flex';
-  document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents = 'none');
+// If already within cooldown window on load, show the banner immediately
+if (!canVote()) {
+  startCooldownDisplay();
 }
 </script>
 </body>
