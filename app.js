@@ -40,6 +40,7 @@ const PRINCES = [
   { id:'baltzar',       name:'Baltzar',       tiktok:'@baltzar.1' },
   { id:'switserland#2', name:'Switserland',   tiktok:'@theprinceofswitzerland' },
   { id:'hungary',       name:'Hungary',       tiktok:'@kobold.exee' },
+  { id:'india',       name:'India',       tiktok:'@iblamebilall' },
 ];
 
 const PRINCESSES = [
@@ -50,6 +51,7 @@ const PRINCESSES = [
   { id:'switserland',      name:'Switserland',     tiktok:'@princessofswissitaly' },
   { id:'friesland',        name:'Friesland',       tiktok:'@princess_of_friesland' },
   { id:'czech republic',   name:'Czech Republic',  tiktok:'@tessynaaa' },
+  { id:'england',   name:'England',  tiktok:'@.johanna_ov' },
 ];
 
 /* ─── Derived helpers ─── */
