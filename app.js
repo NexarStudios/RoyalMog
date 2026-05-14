@@ -1,6 +1,6 @@
 import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, collection, onSnapshot,
-         runTransaction, increment, getDocs }     from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, onSnapshot,
+         runTransaction, increment }              from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getAnalytics }                           from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 
 /* ─── Firebase config ─── */
@@ -14,8 +14,8 @@ const firebaseConfig = {
   measurementId:     "G-9JJMYHF1GB"
 };
 
-/* ─── Candidate data (local fallback / seed) ─── */
-let PRINCES = [
+/* ─── Candidate data ─── */
+const PRINCES = [
   { id:'paris',         name:'Paris',         tiktok:'@princeoffparis' },
   { id:'sweden',        name:'Sweden',        tiktok:'@sippeee_g' },
   { id:'germany',       name:'Germany',       tiktok:'@princeoffgermanyy' },
@@ -43,7 +43,7 @@ let PRINCES = [
   { id:'india',         name:'India',         tiktok:'@iblamebilall' },
 ];
 
-let PRINCESSES = [
+const PRINCESSES = [
   { id:'poland',           name:'Poland',          tiktok:'@princessoffpoland' },
   { id:'cannes',           name:'Cannes',          tiktok:'@lyndaydl' },
   { id:'gelderland',       name:'Gelderland',      tiktok:'@princessa1005' },
@@ -54,16 +54,12 @@ let PRINCESSES = [
   { id:'england',          name:'England',         tiktok:'@.johanna_ov' },
 ];
 
-/* ─── Derived helpers (recomputed after candidate refresh) ─── */
-function computeAll()      { return Object.freeze([...PRINCES, ...PRINCESSES]); }
-function computeValidIds() { return new Set(computeAll().map(c => c.id)); }
-
-let ALL      = computeAll();
-let VALID_IDS = computeValidIds();
+/* ─── Derived helpers ─── */
+const ALL = Object.freeze([...PRINCES, ...PRINCESSES]);
+const VALID_IDS = new Set(ALL.map(c => c.id));
 
 const TT_ICON = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.27 8.27 0 0 0 4.84 1.55V7.05a4.85 4.85 0 0 1-1.07-.36z"/></svg>`;
 
-/* ─── Security: escape user-visible strings to prevent XSS ─── */
 function escapeHTML(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -73,7 +69,6 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
-/* ─── Security: validate TikTok handles before building URLs ─── */
 function ttUrl(handle) {
   const sanitized = handle.startsWith('@') ? handle : '@' + handle;
   if (!/^@[\w.]+$/.test(sanitized)) return '#';
@@ -97,32 +92,80 @@ function avatarImg(c, wrapClass, fallbackClass, glyph) {
   </div>`;
 }
 
-/* ─── 24-hour cooldown via localStorage ─── */
-const VOTE_TS_KEY = 'rm_vote_ts_v2';
-const RATE_MS     = 86_400_000;
+/* ─────────────────────────────────────────────────────────────────────
+   RATE LIMITING — three independent layers.
 
-function getVoteTimestamp() { return parseInt(localStorage.getItem(VOTE_TS_KEY) || '0', 10); }
-function markVoted()        { localStorage.setItem(VOTE_TS_KEY, Date.now().toString()); }
-function msUntilNextVote()  {
-  const ts = getVoteTimestamp();
-  if (!ts) return 0;
-  const remaining = RATE_MS - (Date.now() - ts);
-  return remaining > 0 ? remaining : 0;
+   Layer 1: localStorage  (survives page reload, cleared by user)
+     Key: obfuscated so it's not obvious what to delete.
+
+   Layer 2: sessionStorage (cleared when tab is closed)
+     Tracks whether a vote was cast in THIS browser session.
+     Even if localStorage is wiped, a session-vote blocks further voting
+     until the tab is fully closed/reopened.
+
+   Layer 3: in-memory flag
+     Set as soon as the vote transaction succeeds. Survives neither
+     reload nor tab-close, but blocks console-driven rapid re-attempts
+     within the same JS runtime.
+
+   A vote is allowed only when ALL three layers say "clear".
+   ───────────────────────────────────────────────────────────────────── */
+
+// Obfuscated storage keys — not "rm_vote_ts", so casual console users
+// don't immediately know what to delete.
+const _LS_KEY  = btoa('rm_vote_ts_v3');   // base64 → "cm1fdm90ZV90c192Mw=="
+const _SS_KEY  = btoa('rm_sess_voted');
+const RATE_MS  = 86_400_000; // 24 h
+
+// Layer 3: in-memory flag (module scope)
+let _memVoted = false;
+
+function _lsGet()  { return parseInt(localStorage.getItem(_LS_KEY)  || '0', 10); }
+function _lsSet()  { localStorage.setItem(_LS_KEY, Date.now().toString()); }
+function _ssGet()  { return sessionStorage.getItem(_SS_KEY) === '1'; }
+function _ssSet()  { sessionStorage.setItem(_SS_KEY, '1'); }
+
+function markVoted() {
+  _lsSet();
+  _ssSet();
+  _memVoted = true;
 }
+
+function msUntilNextVote() {
+  // If the in-memory or session flag is set we block for the full remaining
+  // LS window (or a fallback 24 h if LS was wiped).
+  if (_memVoted || _ssGet()) {
+    const ts  = _lsGet();
+    const rem = ts ? RATE_MS - (Date.now() - ts) : RATE_MS;
+    return rem > 0 ? rem : RATE_MS; // don't drop to 0 while session flag is up
+  }
+  const ts  = _lsGet();
+  if (!ts) return 0;
+  const rem = RATE_MS - (Date.now() - ts);
+  return rem > 0 ? rem : 0;
+}
+
 function canVote() { return msUntilNextVote() === 0; }
 
-/* ─── Anti-spam: track recent vote attempts in memory ─── */
-let lastAttemptTs = 0;
-const ATTEMPT_COOLDOWN_MS = 3000;
+/* ─── Anti-spam: click throttle ─── */
+let _lastAttemptTs = 0;
+const ATTEMPT_COOLDOWN_MS = 3_000;
 
 function attemptThrottled() {
   const now = Date.now();
-  if (now - lastAttemptTs < ATTEMPT_COOLDOWN_MS) return true;
-  lastAttemptTs = now;
+  if (now - _lastAttemptTs < ATTEMPT_COOLDOWN_MS) return true;
+  _lastAttemptTs = now;
   return false;
 }
 
-let countdownInterval = null;
+/* ─── Anti-spam: per-page-load submission counter ─────────────────────
+   Even if someone clears storage between votes, they can only submit
+   N times per page load before we silently soft-block them.           */
+let _submitAttempts = 0;
+const MAX_ATTEMPTS_PER_SESSION = 3;
+
+/* ─── Countdown display ─── */
+let _countdownInterval = null;
 
 function formatCountdown(ms) {
   const h = Math.floor(ms / 3_600_000);
@@ -132,7 +175,7 @@ function formatCountdown(ms) {
 }
 
 function startCooldownDisplay() {
-  clearInterval(countdownInterval);
+  clearInterval(_countdownInterval);
   const banner  = document.getElementById('cooldown-banner');
   const timerEl = document.getElementById('cooldown-timer');
   const btn     = document.getElementById('vote-btn');
@@ -141,7 +184,7 @@ function startCooldownDisplay() {
   function tick() {
     const rem = msUntilNextVote();
     if (rem <= 0) {
-      clearInterval(countdownInterval);
+      clearInterval(_countdownInterval);
       banner.classList.remove('show');
       btn.style.display = '';
       btn.disabled = true;
@@ -158,7 +201,7 @@ function startCooldownDisplay() {
   badge.style.display = 'inline-flex';
   document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents = 'none');
   tick();
-  countdownInterval = setInterval(tick, 1_000);
+  _countdownInterval = setInterval(tick, 1_000);
 }
 
 /* ─── Firebase init ─── */
@@ -166,10 +209,8 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 try { getAnalytics(app); } catch(_) {}
 
-const VOTES_DOC       = doc(db, 'royalmog', 'votes');
-const CANDIDATES_COL  = collection(db, 'royalmog_candidates');
+const VOTES_DOC = doc(db, 'royalmog', 'votes');
 
-/* ─── Live vote rankings (real-time) ─── */
 onSnapshot(VOTES_DOC, snap => {
   const data = snap.exists() ? snap.data() : {};
   renderRankings(data);
@@ -178,98 +219,6 @@ onSnapshot(VOTES_DOC, snap => {
   document.getElementById('rankings-content').innerHTML =
     `<div class="empty-state"><span class="e-crown">♛</span>Could not load rankings.<br>Check your connection.</div>`;
 });
-
-/* ─── Candidate list refresh (every 30 seconds) ───────────────────────────
- *
- *  Reads the `royalmog_candidates` Firestore collection.
- *  Each document should have the shape:
- *    { id: string, name: string, tiktok: string, type: 'prince' | 'princess' }
- *
- *  If the collection is empty or unreachable the existing hard-coded lists
- *  are kept as-is, so the site always works even without the extra collection.
- *
- *  Only re-renders the grids when the set of IDs actually changes, so there
- *  is no unnecessary flicker for users who are mid-selection.
- * ─────────────────────────────────────────────────────────────────────── */
-const CANDIDATES_REFRESH_MS = 30_000;
-
-// Snapshot of the IDs we last rendered, used to detect changes
-let lastCandidateFingerprint = fingerprintCandidates(PRINCES, PRINCESSES);
-
-function fingerprintCandidates(princes, princesses) {
-  // Sort so order differences don't trigger a false re-render
-  const ids = [...princes, ...princesses].map(c => c.id).sort();
-  return ids.join('|');
-}
-
-async function refreshCandidates() {
-  try {
-    const snap = await getDocs(CANDIDATES_COL);
-
-    // If the collection doesn't exist / is empty, keep existing lists
-    if (snap.empty) return;
-
-    const freshPrinces    = [];
-    const freshPrincesses = [];
-
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
-      // Basic validation — skip malformed documents
-      if (!d.id || !d.name || !d.tiktok) return;
-      // Sanitise before storing
-      const entry = {
-        id:     String(d.id).slice(0, 80),
-        name:   String(d.name).slice(0, 80),
-        tiktok: String(d.tiktok).slice(0, 80),
-      };
-      if (d.type === 'princess') {
-        freshPrincesses.push(entry);
-      } else {
-        freshPrinces.push(entry);
-      }
-    });
-
-    const newFingerprint = fingerprintCandidates(freshPrinces, freshPrincesses);
-
-    // Nothing changed — don't touch the DOM
-    if (newFingerprint === lastCandidateFingerprint) return;
-
-    lastCandidateFingerprint = newFingerprint;
-
-    // Update the live lists
-    PRINCES    = freshPrinces;
-    PRINCESSES = freshPrincesses;
-    ALL        = computeAll();
-    VALID_IDS  = computeValidIds();
-
-    // If the user had something selected that no longer exists, clear it
-    if (selected && !VALID_IDS.has(selected)) {
-      selected = null;
-    }
-
-    // Rebuild the grids with the fresh candidate data
-    buildGrid('grid-princes',    PRINCES,    false);
-    buildGrid('grid-princesses', PRINCESSES, true);
-
-    // Re-apply any active search filter so hidden cards stay hidden
-    filterCandidates();
-
-    // If user was mid-cooldown the pointer-events lock needs re-applying
-    if (!canVote()) {
-      document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents = 'none');
-    }
-
-    console.info('[RoyalMog] Candidate list updated from Firestore.');
-
-  } catch (err) {
-    // Non-fatal — the hard-coded list remains in use
-    console.warn('[RoyalMog] Candidate refresh failed, keeping existing list.', err);
-  }
-}
-
-// Run once immediately on load, then every 30 seconds
-refreshCandidates();
-setInterval(refreshCandidates, CANDIDATES_REFRESH_MS);
 
 /* ─── Render rankings ─── */
 function renderRankings(data) {
@@ -375,7 +324,6 @@ let selected = null;
 
 function selectCand(id) {
   if (!VALID_IDS.has(id)) return;
-
   if (!canVote()) {
     showToast('You have already voted today. Come back tomorrow!', 'error');
     return;
@@ -396,10 +344,24 @@ function selectCand(id) {
 
 /* ─── Submit vote ─── */
 async function submitVote() {
-  if (!selected)          { showToast('Please select a candidate first.', 'error'); return; }
-  if (!canVote())         { showToast('You have already voted today!', 'error'); return; }
+  // Gate 1: something selected
+  if (!selected) { showToast('Please select a candidate first.', 'error'); return; }
+
+  // Gate 2: all three rate-limit layers
+  if (!canVote()) { showToast('You have already voted today!', 'error'); return; }
+
+  // Gate 3: click throttle
   if (attemptThrottled()) { showToast('Please wait a moment before trying again.', 'error'); return; }
 
+  // Gate 4: per-session attempt ceiling (soft-blocks console re-entry after storage wipe)
+  _submitAttempts++;
+  if (_submitAttempts > MAX_ATTEMPTS_PER_SESSION) {
+    // Don't tell the user exactly why — just silently fail after too many attempts
+    showToast('Something went wrong. Please try again later.', 'error');
+    return;
+  }
+
+  // Gate 5: whitelist check
   if (!VALID_IDS.has(selected)) {
     showToast('Invalid selection. Please refresh and try again.', 'error');
     return;
@@ -415,6 +377,7 @@ async function submitVote() {
     await runTransaction(db, async tx => {
       await tx.get(VOTES_DOC);
       if (!VALID_IDS.has(candidateId)) throw new Error('Invalid candidate');
+      // Always use increment(1) — the Firestore rules now enforce this server-side too
       tx.set(VOTES_DOC, { [candidateId]: increment(1) }, { merge: true });
     });
 
@@ -436,19 +399,17 @@ async function submitVote() {
 /* ─── Search filter ─── */
 function filterCandidates() {
   const raw = document.getElementById('search-input').value;
-  const q = raw.replace(/<[^>]*>/g, '').toLowerCase().trim();
+  const q   = raw.replace(/<[^>]*>/g, '').toLowerCase().trim();
   let vP = 0, vPr = 0;
 
   PRINCES.forEach(c => {
-    const el = document.getElementById('card-' + c.id);
-    if (!el) return;
+    const el   = document.getElementById('card-' + c.id);
     const hide = q && !c.name.toLowerCase().includes(q);
     el.classList.toggle('hidden', hide);
     if (!hide) vP++;
   });
   PRINCESSES.forEach(c => {
-    const el = document.getElementById('card-' + c.id);
-    if (!el) return;
+    const el   = document.getElementById('card-' + c.id);
     const hide = q && !c.name.toLowerCase().includes(q);
     el.classList.toggle('hidden', hide);
     if (!hide) vPr++;
@@ -459,20 +420,19 @@ function filterCandidates() {
 }
 
 /* ─── Toast ─── */
-let toastTimer;
+let _toastTimer;
 function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = `toast show ${type}`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 4200);
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 4200);
 }
 
 /* ─── Tab switching ─── */
 function switchTab(id, btn) {
   const allowed = ['rankings', 'vote', 'about'];
   if (!allowed.includes(id)) return;
-
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
