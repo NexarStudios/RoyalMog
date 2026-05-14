@@ -40,7 +40,7 @@ const PRINCES = [
   { id:'baltzar',       name:'Baltzar',       tiktok:'@baltzar.1' },
   { id:'switserland#2', name:'Switserland',   tiktok:'@theprinceofswitzerland' },
   { id:'hungary',       name:'Hungary',       tiktok:'@kobold.exee' },
-  { id:'india',         name:'India',         tiktok:'@iblamebilall' },
+  { id:'india',       name:'India',       tiktok:'@iblamebilall' },
 ];
 
 const PRINCESSES = [
@@ -51,15 +51,18 @@ const PRINCESSES = [
   { id:'switserland',      name:'Switserland',     tiktok:'@princessofswissitaly' },
   { id:'friesland',        name:'Friesland',       tiktok:'@princess_of_friesland' },
   { id:'czech republic',   name:'Czech Republic',  tiktok:'@tessynaaa' },
-  { id:'england',          name:'England',         tiktok:'@.johanna_ov' },
+  { id:'england',   name:'England',  tiktok:'@.johanna_ov' },
 ];
 
 /* ─── Derived helpers ─── */
 const ALL = Object.freeze([...PRINCES, ...PRINCESSES]);
+
+// Build a Set of valid IDs for O(1) lookup — used in vote validation
 const VALID_IDS = new Set(ALL.map(c => c.id));
 
 const TT_ICON = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.27 8.27 0 0 0 4.84 1.55V7.05a4.85 4.85 0 0 1-1.07-.36z"/></svg>`;
 
+/* ─── Security: escape user-visible strings to prevent XSS ─── */
 function escapeHTML(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -69,7 +72,9 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
+/* ─── Security: validate TikTok handles before building URLs ─── */
 function ttUrl(handle) {
+  // Only allow @username format with safe characters
   const sanitized = handle.startsWith('@') ? handle : '@' + handle;
   if (!/^@[\w.]+$/.test(sanitized)) return '#';
   return `https://www.tiktok.com/${sanitized}`;
@@ -79,6 +84,7 @@ function isPrincess(id) { return PRINCESSES.some(p => p.id === id); }
 
 function imgPath(c) {
   const prefix = isPrincess(c.id) ? 'princess' : 'prince';
+  // Use encodeURIComponent for the id portion in case of special chars
   return `images/${prefix}-${encodeURIComponent(c.id)}.jpg`;
 }
 
@@ -92,80 +98,32 @@ function avatarImg(c, wrapClass, fallbackClass, glyph) {
   </div>`;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   RATE LIMITING — three independent layers.
+/* ─── 24-hour cooldown via localStorage ─── */
+const VOTE_TS_KEY = 'rm_vote_ts_v2';
+const RATE_MS     = 86_400_000;
 
-   Layer 1: localStorage  (survives page reload, cleared by user)
-     Key: obfuscated so it's not obvious what to delete.
-
-   Layer 2: sessionStorage (cleared when tab is closed)
-     Tracks whether a vote was cast in THIS browser session.
-     Even if localStorage is wiped, a session-vote blocks further voting
-     until the tab is fully closed/reopened.
-
-   Layer 3: in-memory flag
-     Set as soon as the vote transaction succeeds. Survives neither
-     reload nor tab-close, but blocks console-driven rapid re-attempts
-     within the same JS runtime.
-
-   A vote is allowed only when ALL three layers say "clear".
-   ───────────────────────────────────────────────────────────────────── */
-
-// Obfuscated storage keys — not "rm_vote_ts", so casual console users
-// don't immediately know what to delete.
-const _LS_KEY  = btoa('rm_vote_ts_v3');   // base64 → "cm1fdm90ZV90c192Mw=="
-const _SS_KEY  = btoa('rm_sess_voted');
-const RATE_MS  = 86_400_000; // 24 h
-
-// Layer 3: in-memory flag (module scope)
-let _memVoted = false;
-
-function _lsGet()  { return parseInt(localStorage.getItem(_LS_KEY)  || '0', 10); }
-function _lsSet()  { localStorage.setItem(_LS_KEY, Date.now().toString()); }
-function _ssGet()  { return sessionStorage.getItem(_SS_KEY) === '1'; }
-function _ssSet()  { sessionStorage.setItem(_SS_KEY, '1'); }
-
-function markVoted() {
-  _lsSet();
-  _ssSet();
-  _memVoted = true;
-}
-
-function msUntilNextVote() {
-  // If the in-memory or session flag is set we block for the full remaining
-  // LS window (or a fallback 24 h if LS was wiped).
-  if (_memVoted || _ssGet()) {
-    const ts  = _lsGet();
-    const rem = ts ? RATE_MS - (Date.now() - ts) : RATE_MS;
-    return rem > 0 ? rem : RATE_MS; // don't drop to 0 while session flag is up
-  }
-  const ts  = _lsGet();
+function getVoteTimestamp() { return parseInt(localStorage.getItem(VOTE_TS_KEY) || '0', 10); }
+function markVoted()        { localStorage.setItem(VOTE_TS_KEY, Date.now().toString()); }
+function msUntilNextVote()  {
+  const ts = getVoteTimestamp();
   if (!ts) return 0;
-  const rem = RATE_MS - (Date.now() - ts);
-  return rem > 0 ? rem : 0;
+  const remaining = RATE_MS - (Date.now() - ts);
+  return remaining > 0 ? remaining : 0;
 }
-
 function canVote() { return msUntilNextVote() === 0; }
 
-/* ─── Anti-spam: click throttle ─── */
-let _lastAttemptTs = 0;
-const ATTEMPT_COOLDOWN_MS = 3_000;
+/* ─── Anti-spam: track recent vote attempts in memory ─── */
+let lastAttemptTs = 0;
+const ATTEMPT_COOLDOWN_MS = 3000; // min 3 s between clicks regardless of state
 
 function attemptThrottled() {
   const now = Date.now();
-  if (now - _lastAttemptTs < ATTEMPT_COOLDOWN_MS) return true;
-  _lastAttemptTs = now;
+  if (now - lastAttemptTs < ATTEMPT_COOLDOWN_MS) return true;
+  lastAttemptTs = now;
   return false;
 }
 
-/* ─── Anti-spam: per-page-load submission counter ─────────────────────
-   Even if someone clears storage between votes, they can only submit
-   N times per page load before we silently soft-block them.           */
-let _submitAttempts = 0;
-const MAX_ATTEMPTS_PER_SESSION = 3;
-
-/* ─── Countdown display ─── */
-let _countdownInterval = null;
+let countdownInterval = null;
 
 function formatCountdown(ms) {
   const h = Math.floor(ms / 3_600_000);
@@ -175,7 +133,7 @@ function formatCountdown(ms) {
 }
 
 function startCooldownDisplay() {
-  clearInterval(_countdownInterval);
+  clearInterval(countdownInterval);
   const banner  = document.getElementById('cooldown-banner');
   const timerEl = document.getElementById('cooldown-timer');
   const btn     = document.getElementById('vote-btn');
@@ -184,7 +142,7 @@ function startCooldownDisplay() {
   function tick() {
     const rem = msUntilNextVote();
     if (rem <= 0) {
-      clearInterval(_countdownInterval);
+      clearInterval(countdownInterval);
       banner.classList.remove('show');
       btn.style.display = '';
       btn.disabled = true;
@@ -201,7 +159,7 @@ function startCooldownDisplay() {
   badge.style.display = 'inline-flex';
   document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents = 'none');
   tick();
-  _countdownInterval = setInterval(tick, 1_000);
+  countdownInterval = setInterval(tick, 1_000);
 }
 
 /* ─── Firebase init ─── */
@@ -222,6 +180,7 @@ onSnapshot(VOTES_DOC, snap => {
 
 /* ─── Render rankings ─── */
 function renderRankings(data) {
+  // Only include entries whose keys are in our known VALID_IDS list
   const sorted = ALL
     .map(c => ({ ...c, v: Number.isFinite(data[c.id]) ? Math.max(0, data[c.id]) : 0 }))
     .sort((a, b) => b.v - a.v);
@@ -323,7 +282,9 @@ function buildGrid(gridId, list, princessFlag) {
 let selected = null;
 
 function selectCand(id) {
+  // Validate the ID is a known candidate
   if (!VALID_IDS.has(id)) return;
+
   if (!canVote()) {
     showToast('You have already voted today. Come back tomorrow!', 'error');
     return;
@@ -344,24 +305,11 @@ function selectCand(id) {
 
 /* ─── Submit vote ─── */
 async function submitVote() {
-  // Gate 1: something selected
-  if (!selected) { showToast('Please select a candidate first.', 'error'); return; }
-
-  // Gate 2: all three rate-limit layers
-  if (!canVote()) { showToast('You have already voted today!', 'error'); return; }
-
-  // Gate 3: click throttle
+  if (!selected)          { showToast('Please select a candidate first.', 'error'); return; }
+  if (!canVote())         { showToast('You have already voted today!', 'error'); return; }
   if (attemptThrottled()) { showToast('Please wait a moment before trying again.', 'error'); return; }
 
-  // Gate 4: per-session attempt ceiling (soft-blocks console re-entry after storage wipe)
-  _submitAttempts++;
-  if (_submitAttempts > MAX_ATTEMPTS_PER_SESSION) {
-    // Don't tell the user exactly why — just silently fail after too many attempts
-    showToast('Something went wrong. Please try again later.', 'error');
-    return;
-  }
-
-  // Gate 5: whitelist check
+  // Final whitelist check — must be a known, canonical ID
   if (!VALID_IDS.has(selected)) {
     showToast('Invalid selection. Please refresh and try again.', 'error');
     return;
@@ -371,13 +319,14 @@ async function submitVote() {
   btn.disabled = true;
   btn.textContent = 'Casting…';
 
-  const candidateId = selected;
+  const candidateId = selected; // capture before any async gap
 
   try {
     await runTransaction(db, async tx => {
+      // Read the doc inside the transaction for atomicity
       await tx.get(VOTES_DOC);
+      // Re-validate inside the transaction
       if (!VALID_IDS.has(candidateId)) throw new Error('Invalid candidate');
-      // Always use increment(1) — the Firestore rules now enforce this server-side too
       tx.set(VOTES_DOC, { [candidateId]: increment(1) }, { merge: true });
     });
 
@@ -399,17 +348,18 @@ async function submitVote() {
 /* ─── Search filter ─── */
 function filterCandidates() {
   const raw = document.getElementById('search-input').value;
-  const q   = raw.replace(/<[^>]*>/g, '').toLowerCase().trim();
+  // Strip any HTML/script injection from search value before using
+  const q = raw.replace(/<[^>]*>/g, '').toLowerCase().trim();
   let vP = 0, vPr = 0;
 
   PRINCES.forEach(c => {
-    const el   = document.getElementById('card-' + c.id);
+    const el = document.getElementById('card-' + c.id);
     const hide = q && !c.name.toLowerCase().includes(q);
     el.classList.toggle('hidden', hide);
     if (!hide) vP++;
   });
   PRINCESSES.forEach(c => {
-    const el   = document.getElementById('card-' + c.id);
+    const el = document.getElementById('card-' + c.id);
     const hide = q && !c.name.toLowerCase().includes(q);
     el.classList.toggle('hidden', hide);
     if (!hide) vPr++;
@@ -420,19 +370,22 @@ function filterCandidates() {
 }
 
 /* ─── Toast ─── */
-let _toastTimer;
+let toastTimer;
 function showToast(msg, type) {
   const t = document.getElementById('toast');
+  // Use textContent (not innerHTML) so the message can never inject markup
   t.textContent = msg;
   t.className = `toast show ${type}`;
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => t.classList.remove('show'), 4200);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4200);
 }
 
 /* ─── Tab switching ─── */
 function switchTab(id, btn) {
+  // Validate id against allowed tab names
   const allowed = ['rankings', 'vote', 'about'];
   if (!allowed.includes(id)) return;
+
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
