@@ -6,26 +6,21 @@
 <title>RoyalMog — Who Reigns Supreme?</title>
 <meta name="description" content="RoyalMog — vote for the best prince or princess and see live rankings.">
 
-<!-- Security headers via meta (supplement real HTTP headers on your server) -->
+<!-- Cache-busting: tells browsers + GitHub Pages CDN not to serve stale files -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma"        content="no-cache">
+<meta http-equiv="Expires"       content="0">
+
+<!-- Security headers -->
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-<!--
-  NOTE: For production, set these as real HTTP response headers on your server/CDN.
-  The Content-Security-Policy below is a starting point — tighten further by hashing
-  your inline scripts or moving all JS to app.js (which is already done here).
-
-  Recommended server-side headers to add:
-    Content-Security-Policy: default-src 'self'; script-src 'self' https://www.gstatic.com https://pagead2.googlesyndication.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://*.firebaseio.com https://*.googleapis.com; frame-ancestors 'none';
-    Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-    Referrer-Policy: strict-origin-when-cross-origin
-    Permissions-Policy: geolocation=(), microphone=(), camera=()
--->
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7433508038069989"
      crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- BUMP ?v= here every deploy, same value as in app.js CLIENT_VERSION -->
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=Cormorant+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2025-05-14-r1">
 </head>
 <body>
 
@@ -141,6 +136,21 @@
     <div class="update-log">
 
       <div class="log-entry" style="animation-delay:0s">
+        <div class="log-date">May<br>14</div>
+        <div class="log-dot"></div>
+        <div class="log-body">
+          <div class="log-version">v1.3</div>
+          <div class="log-title">Security &amp; Cache Improvements</div>
+          <ul class="log-items">
+            <li>Added server-side vote validation via Firestore Security Rules</li>
+            <li>Anomaly detector: unusual vote spikes are logged and flagged</li>
+            <li>Fixed caching issue — new royals now always appear immediately</li>
+            <li>Auto page-reload when a new version is deployed</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="log-entry" style="animation-delay:0s">
         <div class="log-date">May<br>13</div>
         <div class="log-dot"></div>
         <div class="log-body">
@@ -201,6 +211,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="app.js?v=1.2"></script>
+<!-- IMPORTANT: bump ?v= to match CLIENT_VERSION in app.js on every deploy -->
+<script type="module" src="app.js?v=2025-05-14-r1"></script>
 </body>
 </html>
