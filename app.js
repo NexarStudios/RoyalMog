@@ -1,6 +1,6 @@
 import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, onSnapshot,
-         runTransaction, increment }              from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, collection, onSnapshot,
+         runTransaction, increment, getDocs }     from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getAnalytics }                           from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 
 /* ─── Firebase config ─── */
@@ -14,8 +14,8 @@ const firebaseConfig = {
   measurementId:     "G-9JJMYHF1GB"
 };
 
-/* ─── Candidate data ─── */
-const PRINCES = [
+/* ─── Candidate data (local fallback / seed) ─── */
+let PRINCES = [
   { id:'paris',         name:'Paris',         tiktok:'@princeoffparis' },
   { id:'sweden',        name:'Sweden',        tiktok:'@sippeee_g' },
   { id:'germany',       name:'Germany',       tiktok:'@princeoffgermanyy' },
@@ -40,10 +40,10 @@ const PRINCES = [
   { id:'baltzar',       name:'Baltzar',       tiktok:'@baltzar.1' },
   { id:'switserland#2', name:'Switserland',   tiktok:'@theprinceofswitzerland' },
   { id:'hungary',       name:'Hungary',       tiktok:'@kobold.exee' },
-  { id:'india',       name:'India',       tiktok:'@iblamebilall' },
+  { id:'india',         name:'India',         tiktok:'@iblamebilall' },
 ];
 
-const PRINCESSES = [
+let PRINCESSES = [
   { id:'poland',           name:'Poland',          tiktok:'@princessoffpoland' },
   { id:'cannes',           name:'Cannes',          tiktok:'@lyndaydl' },
   { id:'gelderland',       name:'Gelderland',      tiktok:'@princessa1005' },
@@ -51,14 +51,15 @@ const PRINCESSES = [
   { id:'switserland',      name:'Switserland',     tiktok:'@princessofswissitaly' },
   { id:'friesland',        name:'Friesland',       tiktok:'@princess_of_friesland' },
   { id:'czech republic',   name:'Czech Republic',  tiktok:'@tessynaaa' },
-  { id:'england',   name:'England',  tiktok:'@.johanna_ov' },
+  { id:'england',          name:'England',         tiktok:'@.johanna_ov' },
 ];
 
-/* ─── Derived helpers ─── */
-const ALL = Object.freeze([...PRINCES, ...PRINCESSES]);
+/* ─── Derived helpers (recomputed after candidate refresh) ─── */
+function computeAll()      { return Object.freeze([...PRINCES, ...PRINCESSES]); }
+function computeValidIds() { return new Set(computeAll().map(c => c.id)); }
 
-// Build a Set of valid IDs for O(1) lookup — used in vote validation
-const VALID_IDS = new Set(ALL.map(c => c.id));
+let ALL      = computeAll();
+let VALID_IDS = computeValidIds();
 
 const TT_ICON = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.27 8.27 0 0 0 4.84 1.55V7.05a4.85 4.85 0 0 1-1.07-.36z"/></svg>`;
 
@@ -74,7 +75,6 @@ function escapeHTML(str) {
 
 /* ─── Security: validate TikTok handles before building URLs ─── */
 function ttUrl(handle) {
-  // Only allow @username format with safe characters
   const sanitized = handle.startsWith('@') ? handle : '@' + handle;
   if (!/^@[\w.]+$/.test(sanitized)) return '#';
   return `https://www.tiktok.com/${sanitized}`;
@@ -84,7 +84,6 @@ function isPrincess(id) { return PRINCESSES.some(p => p.id === id); }
 
 function imgPath(c) {
   const prefix = isPrincess(c.id) ? 'princess' : 'prince';
-  // Use encodeURIComponent for the id portion in case of special chars
   return `images/${prefix}-${encodeURIComponent(c.id)}.jpg`;
 }
 
@@ -114,7 +113,7 @@ function canVote() { return msUntilNextVote() === 0; }
 
 /* ─── Anti-spam: track recent vote attempts in memory ─── */
 let lastAttemptTs = 0;
-const ATTEMPT_COOLDOWN_MS = 3000; // min 3 s between clicks regardless of state
+const ATTEMPT_COOLDOWN_MS = 3000;
 
 function attemptThrottled() {
   const now = Date.now();
@@ -167,8 +166,10 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 try { getAnalytics(app); } catch(_) {}
 
-const VOTES_DOC = doc(db, 'royalmog', 'votes');
+const VOTES_DOC       = doc(db, 'royalmog', 'votes');
+const CANDIDATES_COL  = collection(db, 'royalmog_candidates');
 
+/* ─── Live vote rankings (real-time) ─── */
 onSnapshot(VOTES_DOC, snap => {
   const data = snap.exists() ? snap.data() : {};
   renderRankings(data);
@@ -178,9 +179,100 @@ onSnapshot(VOTES_DOC, snap => {
     `<div class="empty-state"><span class="e-crown">♛</span>Could not load rankings.<br>Check your connection.</div>`;
 });
 
+/* ─── Candidate list refresh (every 30 seconds) ───────────────────────────
+ *
+ *  Reads the `royalmog_candidates` Firestore collection.
+ *  Each document should have the shape:
+ *    { id: string, name: string, tiktok: string, type: 'prince' | 'princess' }
+ *
+ *  If the collection is empty or unreachable the existing hard-coded lists
+ *  are kept as-is, so the site always works even without the extra collection.
+ *
+ *  Only re-renders the grids when the set of IDs actually changes, so there
+ *  is no unnecessary flicker for users who are mid-selection.
+ * ─────────────────────────────────────────────────────────────────────── */
+const CANDIDATES_REFRESH_MS = 30_000;
+
+// Snapshot of the IDs we last rendered, used to detect changes
+let lastCandidateFingerprint = fingerprintCandidates(PRINCES, PRINCESSES);
+
+function fingerprintCandidates(princes, princesses) {
+  // Sort so order differences don't trigger a false re-render
+  const ids = [...princes, ...princesses].map(c => c.id).sort();
+  return ids.join('|');
+}
+
+async function refreshCandidates() {
+  try {
+    const snap = await getDocs(CANDIDATES_COL);
+
+    // If the collection doesn't exist / is empty, keep existing lists
+    if (snap.empty) return;
+
+    const freshPrinces    = [];
+    const freshPrincesses = [];
+
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      // Basic validation — skip malformed documents
+      if (!d.id || !d.name || !d.tiktok) return;
+      // Sanitise before storing
+      const entry = {
+        id:     String(d.id).slice(0, 80),
+        name:   String(d.name).slice(0, 80),
+        tiktok: String(d.tiktok).slice(0, 80),
+      };
+      if (d.type === 'princess') {
+        freshPrincesses.push(entry);
+      } else {
+        freshPrinces.push(entry);
+      }
+    });
+
+    const newFingerprint = fingerprintCandidates(freshPrinces, freshPrincesses);
+
+    // Nothing changed — don't touch the DOM
+    if (newFingerprint === lastCandidateFingerprint) return;
+
+    lastCandidateFingerprint = newFingerprint;
+
+    // Update the live lists
+    PRINCES    = freshPrinces;
+    PRINCESSES = freshPrincesses;
+    ALL        = computeAll();
+    VALID_IDS  = computeValidIds();
+
+    // If the user had something selected that no longer exists, clear it
+    if (selected && !VALID_IDS.has(selected)) {
+      selected = null;
+    }
+
+    // Rebuild the grids with the fresh candidate data
+    buildGrid('grid-princes',    PRINCES,    false);
+    buildGrid('grid-princesses', PRINCESSES, true);
+
+    // Re-apply any active search filter so hidden cards stay hidden
+    filterCandidates();
+
+    // If user was mid-cooldown the pointer-events lock needs re-applying
+    if (!canVote()) {
+      document.querySelectorAll('.cand-card').forEach(el => el.style.pointerEvents = 'none');
+    }
+
+    console.info('[RoyalMog] Candidate list updated from Firestore.');
+
+  } catch (err) {
+    // Non-fatal — the hard-coded list remains in use
+    console.warn('[RoyalMog] Candidate refresh failed, keeping existing list.', err);
+  }
+}
+
+// Run once immediately on load, then every 30 seconds
+refreshCandidates();
+setInterval(refreshCandidates, CANDIDATES_REFRESH_MS);
+
 /* ─── Render rankings ─── */
 function renderRankings(data) {
-  // Only include entries whose keys are in our known VALID_IDS list
   const sorted = ALL
     .map(c => ({ ...c, v: Number.isFinite(data[c.id]) ? Math.max(0, data[c.id]) : 0 }))
     .sort((a, b) => b.v - a.v);
@@ -282,7 +374,6 @@ function buildGrid(gridId, list, princessFlag) {
 let selected = null;
 
 function selectCand(id) {
-  // Validate the ID is a known candidate
   if (!VALID_IDS.has(id)) return;
 
   if (!canVote()) {
@@ -309,7 +400,6 @@ async function submitVote() {
   if (!canVote())         { showToast('You have already voted today!', 'error'); return; }
   if (attemptThrottled()) { showToast('Please wait a moment before trying again.', 'error'); return; }
 
-  // Final whitelist check — must be a known, canonical ID
   if (!VALID_IDS.has(selected)) {
     showToast('Invalid selection. Please refresh and try again.', 'error');
     return;
@@ -319,13 +409,11 @@ async function submitVote() {
   btn.disabled = true;
   btn.textContent = 'Casting…';
 
-  const candidateId = selected; // capture before any async gap
+  const candidateId = selected;
 
   try {
     await runTransaction(db, async tx => {
-      // Read the doc inside the transaction for atomicity
       await tx.get(VOTES_DOC);
-      // Re-validate inside the transaction
       if (!VALID_IDS.has(candidateId)) throw new Error('Invalid candidate');
       tx.set(VOTES_DOC, { [candidateId]: increment(1) }, { merge: true });
     });
@@ -348,18 +436,19 @@ async function submitVote() {
 /* ─── Search filter ─── */
 function filterCandidates() {
   const raw = document.getElementById('search-input').value;
-  // Strip any HTML/script injection from search value before using
   const q = raw.replace(/<[^>]*>/g, '').toLowerCase().trim();
   let vP = 0, vPr = 0;
 
   PRINCES.forEach(c => {
     const el = document.getElementById('card-' + c.id);
+    if (!el) return;
     const hide = q && !c.name.toLowerCase().includes(q);
     el.classList.toggle('hidden', hide);
     if (!hide) vP++;
   });
   PRINCESSES.forEach(c => {
     const el = document.getElementById('card-' + c.id);
+    if (!el) return;
     const hide = q && !c.name.toLowerCase().includes(q);
     el.classList.toggle('hidden', hide);
     if (!hide) vPr++;
@@ -373,7 +462,6 @@ function filterCandidates() {
 let toastTimer;
 function showToast(msg, type) {
   const t = document.getElementById('toast');
-  // Use textContent (not innerHTML) so the message can never inject markup
   t.textContent = msg;
   t.className = `toast show ${type}`;
   clearTimeout(toastTimer);
@@ -382,7 +470,6 @@ function showToast(msg, type) {
 
 /* ─── Tab switching ─── */
 function switchTab(id, btn) {
-  // Validate id against allowed tab names
   const allowed = ['rankings', 'vote', 'about'];
   if (!allowed.includes(id)) return;
 
