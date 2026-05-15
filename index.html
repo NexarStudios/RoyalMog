@@ -18,9 +18,26 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7433508038069989"
      crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<!-- BUMP ?v= here every deploy, same value as in app.js CLIENT_VERSION -->
+<!-- BUMP ?v= here every deploy, same value as CLIENT_VERSION in app.js -->
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=Cormorant+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=2025-05-14-r1">
+<link rel="stylesheet" href="style.css?v=2025-05-15-r1">
+
+<!--
+  Cache-busting strategy for app.js:
+  Instead of a static ?v= string, we add the current epoch timestamp at
+  page-load time so the browser ALWAYS fetches a fresh copy of app.js.
+  app.js itself then checks /version.txt to see if a new deploy happened
+  and does a hard reload if needed, ensuring every visitor gets the latest.
+-->
+<script>
+  (function() {
+    var s = document.createElement('script');
+    s.type = 'module';
+    // Append epoch ms so the browser never serves a cached copy of app.js
+    s.src = 'app.js?v=' + Date.now();
+    document.head.appendChild(s);
+  })();
+</script>
 </head>
 <body>
 
@@ -136,6 +153,19 @@
     <div class="update-log">
 
       <div class="log-entry" style="animation-delay:0s">
+        <div class="log-date">May<br>15</div>
+        <div class="log-dot"></div>
+        <div class="log-body">
+          <div class="log-version">v1.4</div>
+          <div class="log-title">Cache-Busting Fix</div>
+          <ul class="log-items">
+            <li>app.js now loads with a unique timestamp every visit — browsers can no longer serve stale versions</li>
+            <li>Version check against /version.txt triggers an automatic hard reload when a new deploy is detected</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="log-entry" style="animation-delay:0s">
         <div class="log-date">May<br>14</div>
         <div class="log-dot"></div>
         <div class="log-body">
@@ -211,7 +241,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- IMPORTANT: bump ?v= to match CLIENT_VERSION in app.js on every deploy -->
-<script type="module" src="app.js?v=2025-05-14-r1"></script>
+<!-- app.js is now injected by the inline script above with a timestamp cache-buster -->
 </body>
 </html>
