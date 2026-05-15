@@ -267,6 +267,107 @@
     flex-shrink: 0;
   }
   /* ── End Rankings Donate Strip ───────────────────────────────── */
+
+  /* ── Maintenance Notice ──────────────────────────────────────── */
+  .maintenance-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.15rem;
+    border-radius: 10px;
+    background: linear-gradient(100deg, #12100a 0%, #1e1a0d 60%, #12100a 100%);
+    border: 1px solid rgba(220, 160, 40, 0.45);
+    box-shadow: 0 0 0 1px rgba(220,160,40,0.08) inset, 0 4px 18px rgba(0,0,0,0.4);
+    flex-wrap: wrap;
+  }
+
+  .maint-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    flex-shrink: 0;
+    animation: maint-wiggle 4s ease-in-out infinite;
+  }
+
+  @keyframes maint-wiggle {
+    0%, 80%, 100% { transform: rotate(0deg); }
+    85%           { transform: rotate(20deg); }
+    90%           { transform: rotate(-10deg); }
+    95%           { transform: rotate(15deg); }
+  }
+
+  .maint-body {
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .maint-title {
+    font-family: 'Cormorant SC', serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #f0c84a;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+    margin-bottom: 0.25rem;
+  }
+
+  .maint-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 300;
+    color: rgba(220, 205, 175, 0.72);
+    line-height: 1.55;
+  }
+
+  .maint-desc strong {
+    color: rgba(240, 200, 100, 0.92);
+    font-weight: 500;
+  }
+
+  .maint-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.48rem 0.95rem;
+    border-radius: 6px;
+    background: rgba(220, 160, 40, 0.12);
+    border: 1px solid rgba(220, 160, 40, 0.4);
+    color: #f0c84a;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .maint-btn svg {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+    flex-shrink: 0;
+  }
+
+  .maint-btn:hover {
+    background: rgba(220, 160, 40, 0.22);
+    border-color: rgba(220, 160, 40, 0.6);
+    transform: translateY(-1px);
+  }
+
+  .maint-btn:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 480px) {
+    .maint-btn {
+      width: 100%;
+      justify-content: center;
+      margin-top: 0.25rem;
+    }
+  }
+  /* ── End Maintenance Notice ──────────────────────────────────── */
 </style>
 
 <!--
@@ -314,6 +415,28 @@
 
   <!-- RANKINGS -->
   <div class="panel active" id="panel-rankings">
+
+    <!-- ── Maintenance Notice ─────────────────────────────────── -->
+    <div class="maintenance-notice">
+      <div class="maint-icon">⚙️</div>
+      <div class="maint-body">
+        <div class="maint-title">Scheduled Maintenance Tonight</div>
+        <div class="maint-desc">
+          Between <strong>20:00 – 23:00</strong> today, RoyalMog may be temporarily inactive or unstable due to security updates. We apologise for the inconvenience — the court will return shortly after.
+        </div>
+      </div>
+      <a class="maint-btn"
+         href="https://www.tiktok.com/@giis6830"
+         target="_blank"
+         rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.27 8.27 0 0 0 4.84 1.55V7.05a4.85 4.85 0 0 1-1.07-.36z"/>
+        </svg>
+        See something odd? DM @giis6830
+      </a>
+    </div>
+    <!-- ── End Maintenance Notice ──────────────────────────────── -->
+
     <div class="section-head">
       <span class="section-title">Live Standings</span>
       <span class="section-meta" id="total-label">— votes cast</span>
