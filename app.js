@@ -3,6 +3,30 @@ import { getFirestore, doc, onSnapshot,
          runTransaction, increment }              from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getAnalytics }                           from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 
+/* ─── Version guard — bump this string on EVERY deploy ─── */
+const CLIENT_VERSION = '2025-05-15-r1';
+
+/* ─── Auto reload when a new version is deployed ─────────────────────────
+   Fetches /version.txt (a tiny plain-text file you create each deploy)
+   with cache disabled. If it differs from CLIENT_VERSION the page does a
+   hard reload, which forces the browser to re-fetch all assets fresh.
+   Falls back silently if the file is missing so local dev still works.
+──────────────────────────────────────────────────────────────────────── */
+(async function checkVersion() {
+  try {
+    const res = await fetch('/version.txt', {
+      cache: 'no-store',
+      headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+    });
+    if (!res.ok) return;                       // file missing — skip check
+    const serverVersion = (await res.text()).trim();
+    if (serverVersion && serverVersion !== CLIENT_VERSION) {
+      // New version detected — hard-reload to pick up fresh assets
+      window.location.reload(true);
+    }
+  } catch (_) { /* network error or file absent — ignore */ }
+})();
+
 /* ─── Firebase config ─── */
 const firebaseConfig = {
   apiKey:            "AIzaSyAHMkMwjU4B78ItURh5rD2nvXyq4lFwzAs",
@@ -40,12 +64,12 @@ const PRINCES = [
   { id:'baltzar',       name:'Baltzar',       tiktok:'@baltzar.1' },
   { id:'switserland#2', name:'Switserland',   tiktok:'@theprinceofswitzerland' },
   { id:'hungary',       name:'Hungary',       tiktok:'@kobold.exee' },
-  { id:'india',       name:'India',       tiktok:'@iblamebilall' },
+  { id:'india',         name:'India',         tiktok:'@iblamebilall' },
   { id:'ireland',       name:'Ireland',       tiktok:'@prince_irelandtt' },
-  { id:'sápmi',       name:'Sápmi',       tiktok:'@thesword665' },
+  { id:'sápmi',         name:'Sápmi',         tiktok:'@thesword665' },
   { id:'estonia',       name:'Estonia',       tiktok:'@JoosepMogs' },
-  { id:'malta',       name:'Malta',       tiktok:'@denilsonzammit' },
-  { id:'bosnia',       name:'Bosnia',       tiktok:'@melvin_vem_annars' },
+  { id:'malta',         name:'Malta',         tiktok:'@denilsonzammit' },
+  { id:'bosnia',        name:'Bosnia',        tiktok:'@melvin_vem_annars' },
   { id:'england',       name:'England',       tiktok:'@princeofengland8' },
 ];
 
@@ -57,10 +81,10 @@ const PRINCESSES = [
   { id:'switserland',      name:'Switserland',     tiktok:'@princessofswissitaly' },
   { id:'friesland',        name:'Friesland',       tiktok:'@princess_of_friesland' },
   { id:'czech republic',   name:'Czech Republic',  tiktok:'@tessynaaa' },
-  { id:'england',   name:'England',  tiktok:'@.johanna_ov' },
-  { id:'sweden#2',   name:'Sweden',  tiktok:'@livfrandegard' },
-  { id:'greece',   name:'Greece',  tiktok:'@princessofgreece_' },
-  { id:'portugal',   name:'Portugal',  tiktok:'@raquelbtw' },
+  { id:'england',          name:'England',         tiktok:'@.johanna_ov' },
+  { id:'sweden#2',         name:'Sweden',          tiktok:'@livfrandegard' },
+  { id:'greece',           name:'Greece',          tiktok:'@princessofgreece_' },
+  { id:'portugal',         name:'Portugal',        tiktok:'@raquelbtw' },
 ];
 
 /* ─── Derived helpers ─── */
