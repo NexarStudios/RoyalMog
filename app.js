@@ -13,11 +13,11 @@
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 // ↓ Replace with your deployed Worker URL after `npx wrangler deploy`
-const API_BASE = 'https://royalmog-api.YOUR_SUBDOMAIN.workers.dev';
+const API_BASE = 'https://royalmog-api.ottenwebstudios.workers.dev';
 
 // ↓ Replace with your Turnstile SITE key (public, safe to expose)
 //   Get it from: Cloudflare Dashboard → Turnstile → your site → Site Key
-const TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
+const TURNSTILE_SITE_KEY = '0x4AAAAAADQC0Z_vATLLyBY-';
 
 // ─── Candidate data (mirrors the database — used only for rendering) ──────────
 // The backend has its own identical list and ignores any ID not in it.
