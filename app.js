@@ -392,8 +392,11 @@ async function submitVote() {
     document.querySelectorAll('.cand-card').forEach(el => el.classList.remove('selected'));
     startCooldownDisplay();
 
-    // Refresh rankings after a short delay so the DB write has settled
-    setTimeout(loadAndRenderRankings, 800);
+    // Switch to rankings tab and refresh after vote
+    setTimeout(() => {
+      document.querySelectorAll('.tab')[0].click();
+      loadAndRenderRankings();
+    }, 800);
 
   } catch (err) {
     console.error('Vote error:', err);
