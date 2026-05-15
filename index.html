@@ -22,6 +22,160 @@
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=Cormorant+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css?v=2025-05-15-r1">
 
+<style>
+  /* ── Donation Block ────────────────────────────────────────── */
+  .about-donate {
+    position: relative;
+    margin: 2.2rem 0 2rem;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1a1208 0%, #2a1e0a 55%, #1c1609 100%);
+    border: 1px solid rgba(196, 160, 80, 0.35);
+    box-shadow:
+      0 0 0 1px rgba(196,160,80,0.10) inset,
+      0 8px 40px rgba(0,0,0,0.45),
+      0 2px 8px rgba(196,160,80,0.08);
+    padding: 2rem 1.8rem 1.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.65rem;
+  }
+
+  /* corner ornaments */
+  .about-donate::before,
+  .about-donate::after {
+    content: '';
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    border-color: rgba(196,160,80,0.35);
+    border-style: solid;
+  }
+  .about-donate::before {
+    top: 10px; left: 10px;
+    border-width: 1px 0 0 1px;
+    border-radius: 4px 0 0 0;
+  }
+  .about-donate::after {
+    bottom: 10px; right: 10px;
+    border-width: 0 1px 1px 0;
+    border-radius: 0 0 4px 0;
+  }
+
+  .donate-crown {
+    font-size: 2rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 10px rgba(196,160,80,0.6));
+    animation: donate-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes donate-pulse {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(196,160,80,0.5)); transform: translateY(0); }
+    50%       { filter: drop-shadow(0 0 18px rgba(196,160,80,0.9)); transform: translateY(-3px); }
+  }
+
+  .donate-eyebrow {
+    font-family: 'Cormorant SC', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    color: rgba(196,160,80,0.7);
+    text-transform: uppercase;
+    margin-bottom: -0.2rem;
+  }
+
+  .donate-title {
+    font-family: 'Cormorant SC', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #e8cc80;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+  }
+
+  .donate-rule {
+    width: 48px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(196,160,80,0.6), transparent);
+    margin: 0.15rem 0 0.1rem;
+  }
+
+  .donate-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 300;
+    color: rgba(220,205,175,0.82);
+    line-height: 1.65;
+    max-width: 420px;
+  }
+
+  .donate-desc strong {
+    color: rgba(220,205,175,1);
+    font-weight: 500;
+  }
+
+  .btn-donate {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-top: 0.55rem;
+    padding: 0.72rem 1.8rem;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #b8901e 0%, #d4a830 50%, #c09520 100%);
+    color: #1a1208;
+    font-family: 'Cormorant SC', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    box-shadow:
+      0 2px 12px rgba(196,160,80,0.4),
+      0 1px 3px rgba(0,0,0,0.4);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-donate::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .btn-donate:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 4px 22px rgba(196,160,80,0.55),
+      0 2px 6px rgba(0,0,0,0.4);
+    filter: brightness(1.06);
+  }
+
+  .btn-donate:active {
+    transform: translateY(0);
+    filter: brightness(0.96);
+  }
+
+  .btn-donate svg {
+    width: 15px;
+    height: 15px;
+    fill: currentColor;
+    flex-shrink: 0;
+  }
+
+  .donate-note {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    color: rgba(196,160,80,0.45);
+    letter-spacing: 0.02em;
+  }
+  /* ── End Donation Block ──────────────────────────────────────── */
+</style>
+
 <!--
   Cache-busting strategy for app.js:
   Instead of a static ?v= string, we add the current epoch timestamp at
@@ -146,6 +300,29 @@
         @giis6830
       </a>
     </div>
+
+    <!-- ── DONATION BLOCK ───────────────────────────────────────── -->
+    <div class="about-donate">
+      <div class="donate-crown">♛</div>
+      <div class="donate-eyebrow">Support the Court</div>
+      <div class="donate-title">Keep the Crown Alive</div>
+      <div class="donate-rule"></div>
+      <p class="donate-desc">
+        RoyalMog runs entirely on passion — and a bit of server budget. Your support helps keep the rankings live, the updates rolling, and the court growing. <strong>Every contribution, however small, keeps the kingdom standing.</strong>
+      </p>
+      <a class="btn-donate"
+         href="https://whydonate.com/nl/fundraising/royalmog-donations"
+         target="_blank"
+         rel="noopener noreferrer">
+        <!-- heart icon -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5 2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/>
+        </svg>
+        Donate to RoyalMog
+      </a>
+      <div class="donate-note">Opens whydonate.com · No account required</div>
+    </div>
+    <!-- ── END DONATION BLOCK ──────────────────────────────────── -->
 
     <!-- Update Log -->
     <div class="about-log-label">Update Log</div>
