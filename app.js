@@ -1,30 +1,24 @@
 import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, doc, onSnapshot,
-         runTransaction, increment }              from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+         runTransaction, increment, setDoc,
+         getDoc, serverTimestamp }               from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getAnalytics }                           from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 
 /* ─── Version guard — bump this string on EVERY deploy ─── */
-const CLIENT_VERSION = '2025-05-15-r1';
+const CLIENT_VERSION = '2025-05-15-r2';
 
-/* ─── Auto reload when a new version is deployed ─────────────────────────
-   Fetches /version.txt (a tiny plain-text file you create each deploy)
-   with cache disabled. If it differs from CLIENT_VERSION the page does a
-   hard reload, which forces the browser to re-fetch all assets fresh.
-   Falls back silently if the file is missing so local dev still works.
-──────────────────────────────────────────────────────────────────────── */
 (async function checkVersion() {
   try {
     const res = await fetch('/version.txt', {
       cache: 'no-store',
       headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
     });
-    if (!res.ok) return;                       // file missing — skip check
+    if (!res.ok) return;
     const serverVersion = (await res.text()).trim();
     if (serverVersion && serverVersion !== CLIENT_VERSION) {
-      // New version detected — hard-reload to pick up fresh assets
       window.location.reload(true);
     }
-  } catch (_) { /* network error or file absent — ignore */ }
+  } catch (_) {}
 })();
 
 /* ─── Firebase config ─── */
@@ -87,15 +81,11 @@ const PRINCESSES = [
   { id:'portugal',         name:'Portugal',        tiktok:'@raquelbtw' },
 ];
 
-/* ─── Derived helpers ─── */
-const ALL = Object.freeze([...PRINCES, ...PRINCESSES]);
-
-// Build a Set of valid IDs for O(1) lookup — used in vote validation
+const ALL      = Object.freeze([...PRINCES, ...PRINCESSES]);
 const VALID_IDS = new Set(ALL.map(c => c.id));
 
 const TT_ICON = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.27 8.27 0 0 0 4.84 1.55V7.05a4.85 4.85 0 0 1-1.07-.36z"/></svg>`;
 
-/* ─── Security: escape user-visible strings to prevent XSS ─── */
 function escapeHTML(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -105,9 +95,7 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
-/* ─── Security: validate TikTok handles before building URLs ─── */
 function ttUrl(handle) {
-  // Only allow @username format with safe characters
   const sanitized = handle.startsWith('@') ? handle : '@' + handle;
   if (!/^@[\w.]+$/.test(sanitized)) return '#';
   return `https://www.tiktok.com/${sanitized}`;
@@ -117,7 +105,6 @@ function isPrincess(id) { return PRINCESSES.some(p => p.id === id); }
 
 function imgPath(c) {
   const prefix = isPrincess(c.id) ? 'princess' : 'prince';
-  // Use encodeURIComponent for the id portion in case of special chars
   return `images/${prefix}-${encodeURIComponent(c.id)}.jpg`;
 }
 
@@ -129,6 +116,161 @@ function avatarImg(c, wrapClass, fallbackClass, glyph) {
          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
     <span class="${fallbackClass}" style="display:none">${glyph}</span>
   </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ANOMALY DETECTION SYSTEM
+   ═══════════════════════════════════════════════════════════════════════
+
+   Strategy:
+   ─────────
+   1. We keep a rolling snapshot of vote counts in `lastKnownCounts`.
+   2. On every Firestore `onSnapshot` update we diff the new counts
+      against the last known ones.
+   3. If any single candidate's count jumped by ≥ SPIKE_THRESHOLD votes
+      in a single snapshot delta (a few seconds), we classify it as an
+      anomaly.
+   4. We write a quarantine record to `royalmog/audit` so an admin (or
+      Cloud Function) can review and roll back server-side.
+   5. We visually flag the candidate in the UI with a warning badge.
+   6. We attempt a client-side rollback via Firestore transaction — this
+      only succeeds if your Security Rules permit it (see README below).
+
+   ⚠️  IMPORTANT — READ THIS:
+   ─────────────────────────
+   Client-side rollback can itself be defeated. The real protection is
+   Firestore Security Rules + a Cloud Function. This client code acts as
+   an early-warning layer and a best-effort corrector. Deploy the
+   Security Rules in FIRESTORE_RULES.txt alongside this file.
+
+   The audit log written to `royalmog/audit_log` (subcollection) can
+   trigger a Cloud Function that does the authoritative rollback with
+   admin privileges the client never has.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const SPIKE_THRESHOLD     = 20;   // votes-per-snapshot that triggers anomaly
+const AUDIT_DOC           = doc(db => db, 'royalmog', 'audit'); // set after db init
+const ANOMALY_WINDOW_MS   = 8_000; // time window we consider "one burst"
+
+// Rolling baseline: candidateId → { count, ts }
+const lastKnownCounts = new Map();
+
+// Candidates currently flagged as anomalous: candidateId → true
+const flaggedCandidates = new Set();
+
+// Per-candidate spike history: candidateId → [timestamp, ...]
+const spikeHistory = new Map();
+
+/**
+ * Called on every snapshot. Diffs new data against last known counts,
+ * detects spikes, and handles them.
+ */
+async function runAnomalyDetection(db, newData) {
+  const now = Date.now();
+
+  for (const [id, newCount] of Object.entries(newData)) {
+    if (!VALID_IDS.has(id)) continue; // ignore unknown fields
+
+    const prev = lastKnownCounts.get(id);
+
+    if (prev !== undefined) {
+      const delta = newCount - prev.count;
+
+      if (delta >= SPIKE_THRESHOLD) {
+        console.warn(`[AnomalyDetector] Spike on "${id}": +${delta} votes in one snapshot (prev=${prev.count}, now=${newCount})`);
+        await handleAnomaly(db, id, prev.count, newCount, delta, now);
+      }
+    }
+
+    // Update baseline
+    lastKnownCounts.set(id, { count: newCount, ts: now });
+  }
+}
+
+/**
+ * Handles a detected anomaly:
+ *  1. Flags the candidate in the UI.
+ *  2. Writes an audit record to Firestore.
+ *  3. Attempts a client-side rollback to the pre-spike value.
+ */
+async function handleAnomaly(db, candidateId, prevCount, newCount, delta, ts) {
+  // 1 — Flag in UI immediately
+  flaggedCandidates.add(candidateId);
+  markCandidateSuspect(candidateId, delta);
+  showToast(`⚠️ Suspicious activity detected. Investigating vote for ${getCandidateName(candidateId)}…`, 'error');
+
+  // 2 — Write audit record (best-effort; may fail if rules deny)
+  try {
+    const auditCol = doc(db, 'royalmog', 'audit');
+    await setDoc(
+      doc(db, `royalmog/audit_log/${candidateId}_${ts}`),
+      {
+        candidateId,
+        prevCount,
+        detectedCount: newCount,
+        delta,
+        detectedAt:    serverTimestamp(),
+        clientVersion: CLIENT_VERSION,
+        resolved:      false,
+      },
+      { merge: true }
+    );
+  } catch (e) {
+    console.warn('[AnomalyDetector] Could not write audit record:', e.message);
+  }
+
+  // 3 — Attempt rollback: reset to prevCount inside a transaction.
+  //     This will only work if your Security Rules allow writes from
+  //     trusted clients. If you have strict rules (recommended), this
+  //     step is a no-op and the Cloud Function handles it instead.
+  try {
+    const votesDoc = doc(db, 'royalmog', 'votes');
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(votesDoc);
+      if (!snap.exists()) return;
+
+      const currentVal = snap.data()[candidateId] ?? 0;
+      // Only roll back if the value is still anomalously high
+      // (prevents rolling back legitimate votes that came in after)
+      if (currentVal - prevCount >= SPIKE_THRESHOLD) {
+        console.warn(`[AnomalyDetector] Rolling back "${candidateId}" from ${currentVal} to ${prevCount}`);
+        tx.set(votesDoc, { [candidateId]: prevCount }, { merge: true });
+        // Update our baseline to the rolled-back value
+        lastKnownCounts.set(candidateId, { count: prevCount, ts: Date.now() });
+        showToast(`Vote count for ${getCandidateName(candidateId)} was reset due to suspicious activity.`, 'error');
+      }
+    });
+  } catch (e) {
+    // Rollback failed — this is expected when Security Rules are strict.
+    // The Cloud Function (triggered by the audit record) will handle it.
+    console.warn('[AnomalyDetector] Client rollback blocked (expected with strict rules):', e.message);
+  }
+}
+
+/** Adds a visual warning badge to a candidate card in the vote grid. */
+function markCandidateSuspect(candidateId, delta) {
+  const card = document.getElementById('card-' + candidateId);
+  if (!card) return;
+
+  // Don't add duplicate badges
+  if (card.querySelector('.suspect-badge')) return;
+
+  const badge = document.createElement('div');
+  badge.className = 'suspect-badge';
+  badge.title     = `Suspicious spike of +${delta} votes detected`;
+  badge.textContent = '⚠️';
+  card.appendChild(badge);
+  card.classList.add('suspect');
+}
+
+/** Also marks ranking rows as suspicious. */
+function markRankingRowSuspect(candidateId) {
+  // Rankings are re-rendered from scratch each snapshot; the render
+  // function checks flaggedCandidates and injects the badge itself.
+}
+
+function getCandidateName(id) {
+  return ALL.find(c => c.id === id)?.name ?? id;
 }
 
 /* ─── 24-hour cooldown via localStorage ─── */
@@ -147,7 +289,7 @@ function canVote() { return msUntilNextVote() === 0; }
 
 /* ─── Anti-spam: track recent vote attempts in memory ─── */
 let lastAttemptTs = 0;
-const ATTEMPT_COOLDOWN_MS = 3000; // min 3 s between clicks regardless of state
+const ATTEMPT_COOLDOWN_MS = 3000;
 
 function attemptThrottled() {
   const now = Date.now();
@@ -202,8 +344,27 @@ try { getAnalytics(app); } catch(_) {}
 
 const VOTES_DOC = doc(db, 'royalmog', 'votes');
 
+/* ─── Snapshot listener with anomaly detection ─── */
+let isFirstSnapshot = true;
+
 onSnapshot(VOTES_DOC, snap => {
   const data = snap.exists() ? snap.data() : {};
+
+  // On the very first snapshot, just seed the baseline — don't diff yet,
+  // since we have nothing to compare against and any value would look
+  // like a "spike from zero".
+  if (isFirstSnapshot) {
+    isFirstSnapshot = false;
+    for (const [id, count] of Object.entries(data)) {
+      if (VALID_IDS.has(id)) {
+        lastKnownCounts.set(id, { count: Number(count), ts: Date.now() });
+      }
+    }
+  } else {
+    // Run anomaly detection asynchronously (don't block render)
+    runAnomalyDetection(db, data).catch(console.error);
+  }
+
   renderRankings(data);
 }, err => {
   console.warn('Snapshot error', err);
@@ -213,7 +374,6 @@ onSnapshot(VOTES_DOC, snap => {
 
 /* ─── Render rankings ─── */
 function renderRankings(data) {
-  // Only include entries whose keys are in our known VALID_IDS list
   const sorted = ALL
     .map(c => ({ ...c, v: Number.isFinite(data[c.id]) ? Math.max(0, data[c.id]) : 0 }))
     .sort((a, b) => b.v - a.v);
@@ -239,16 +399,20 @@ function renderRankings(data) {
 
   const podHTML = podOrd.map((c, i) => {
     if (!c) return `<div class="pod-card" style="visibility:hidden"></div>`;
-    const pct  = Math.round((c.v / tot) * 100);
-    const name = escapeHTML(c.name);
-    const url  = escapeHTML(ttUrl(c.tiktok));
-    const type = isPrincess(c.id) ? 'Princess of' : 'Prince of';
+    const pct     = Math.round((c.v / tot) * 100);
+    const name    = escapeHTML(c.name);
+    const url     = escapeHTML(ttUrl(c.tiktok));
+    const type    = isPrincess(c.id) ? 'Princess of' : 'Prince of';
+    // Anomaly badge in rankings
+    const suspect = flaggedCandidates.has(c.id)
+      ? `<span class="rank-suspect-badge" title="Suspicious vote spike detected">⚠️ Under Review</span>` : '';
     return `
-      <div class="pod-card ${pCls[i]}">
+      <div class="pod-card ${pCls[i]}${flaggedCandidates.has(c.id) ? ' rank-suspect' : ''}">
         <div class="pod-medal">${pMedal[i]}</div>
         ${avatarImg(c, 'pod-avatar-wrap', 'pod-avatar-fallback', isPrincess(c.id) ? '♛' : '♔')}
         <div class="pod-type">${type}</div>
         <div class="pod-name">${name}</div>
+        ${suspect}
         <div class="pod-votes">${c.v}</div>
         <div class="pod-pct">${pct}%</div>
         <a class="pod-tt" href="${url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">
@@ -258,18 +422,21 @@ function renderRankings(data) {
   }).join('');
 
   const listHTML = rest.map((c, i) => {
-    const pct  = Math.round((c.v / tot) * 100);
-    const barW = Math.round((c.v / maxV) * 100);
-    const name = escapeHTML(c.name);
-    const url  = escapeHTML(ttUrl(c.tiktok));
-    const type = isPrincess(c.id) ? 'Princess of' : 'Prince of';
+    const pct     = Math.round((c.v / tot) * 100);
+    const barW    = Math.round((c.v / maxV) * 100);
+    const name    = escapeHTML(c.name);
+    const url     = escapeHTML(ttUrl(c.tiktok));
+    const type    = isPrincess(c.id) ? 'Princess of' : 'Prince of';
+    const suspect = flaggedCandidates.has(c.id)
+      ? `<span class="rank-suspect-badge" title="Suspicious vote spike detected">⚠️ Under Review</span>` : '';
     return `
-      <div class="rank-row" style="animation-delay:${i * 0.04}s">
+      <div class="rank-row${flaggedCandidates.has(c.id) ? ' rank-suspect' : ''}" style="animation-delay:${i * 0.04}s">
         <div class="rank-num">${i + 4}</div>
         ${avatarImg(c, 'rank-avatar', 'rank-avatar-fallback', isPrincess(c.id) ? '♛' : '♔')}
         <div>
           <div class="rank-name">${name}</div>
           <div class="rank-type">${type}</div>
+          ${suspect}
         </div>
         <div class="rank-bar">
           <div class="rank-track"><div class="rank-fill" style="width:${barW}%"></div></div>
@@ -315,9 +482,7 @@ function buildGrid(gridId, list, princessFlag) {
 let selected = null;
 
 function selectCand(id) {
-  // Validate the ID is a known candidate
   if (!VALID_IDS.has(id)) return;
-
   if (!canVote()) {
     showToast('You have already voted today. Come back tomorrow!', 'error');
     return;
@@ -341,8 +506,6 @@ async function submitVote() {
   if (!selected)          { showToast('Please select a candidate first.', 'error'); return; }
   if (!canVote())         { showToast('You have already voted today!', 'error'); return; }
   if (attemptThrottled()) { showToast('Please wait a moment before trying again.', 'error'); return; }
-
-  // Final whitelist check — must be a known, canonical ID
   if (!VALID_IDS.has(selected)) {
     showToast('Invalid selection. Please refresh and try again.', 'error');
     return;
@@ -352,13 +515,11 @@ async function submitVote() {
   btn.disabled = true;
   btn.textContent = 'Casting…';
 
-  const candidateId = selected; // capture before any async gap
+  const candidateId = selected;
 
   try {
     await runTransaction(db, async tx => {
-      // Read the doc inside the transaction for atomicity
       await tx.get(VOTES_DOC);
-      // Re-validate inside the transaction
       if (!VALID_IDS.has(candidateId)) throw new Error('Invalid candidate');
       tx.set(VOTES_DOC, { [candidateId]: increment(1) }, { merge: true });
     });
@@ -381,7 +542,6 @@ async function submitVote() {
 /* ─── Search filter ─── */
 function filterCandidates() {
   const raw = document.getElementById('search-input').value;
-  // Strip any HTML/script injection from search value before using
   const q = raw.replace(/<[^>]*>/g, '').toLowerCase().trim();
   let vP = 0, vPr = 0;
 
@@ -406,7 +566,6 @@ function filterCandidates() {
 let toastTimer;
 function showToast(msg, type) {
   const t = document.getElementById('toast');
-  // Use textContent (not innerHTML) so the message can never inject markup
   t.textContent = msg;
   t.className = `toast show ${type}`;
   clearTimeout(toastTimer);
@@ -415,17 +574,15 @@ function showToast(msg, type) {
 
 /* ─── Tab switching ─── */
 function switchTab(id, btn) {
-  // Validate id against allowed tab names
   const allowed = ['rankings', 'vote', 'about'];
   if (!allowed.includes(id)) return;
-
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('panel-' + id).classList.add('active');
 }
 
-/* ─── Expose only what the HTML needs ─── */
+/* ─── Expose to HTML ─── */
 window.submitVote       = submitVote;
 window.filterCandidates = filterCandidates;
 window.showToast        = showToast;
@@ -434,7 +591,4 @@ window.switchTab        = switchTab;
 /* ─── Init ─── */
 buildGrid('grid-princes',    PRINCES,    false);
 buildGrid('grid-princesses', PRINCESSES, true);
-
-if (!canVote()) {
-  startCooldownDisplay();
-}
+if (!canVote()) { startCooldownDisplay(); }
