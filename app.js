@@ -56,6 +56,7 @@ const PRINCES = [
   { id: 'england',       name: 'England',      tiktok: '@princeofengland8' },
   { id: '2010',        name: '2010',       tiktok: '@true.prince.of.hungary' },
   { id: 'madagascar',       name: 'Madagascar',      tiktok: '@princeoffmadagascar' },
+  { id: 'czech republic#2',       name: 'Czech Republic',      tiktok: '@s.samson.n' },
 ];
 
 const PRINCESSES = [
