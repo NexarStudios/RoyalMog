@@ -42,72 +42,6 @@
     margin: 1rem 0 0.5rem;
   }
 
-  /* ── Donation Block ────────────────────────────────────────────────────────── */
-  .about-donate {
-    position: relative;
-    margin: 2.2rem 0 2rem;
-    border-radius: 14px;
-    overflow: hidden;
-    background: linear-gradient(135deg, #1a1208 0%, #2a1e0a 55%, #1c1609 100%);
-    border: 1px solid rgba(196, 160, 80, 0.35);
-    box-shadow:
-      0 0 0 1px rgba(196,160,80,0.10) inset,
-      0 8px 40px rgba(0,0,0,0.45),
-      0 2px 8px rgba(196,160,80,0.08);
-    padding: 2rem 1.8rem 1.8rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.65rem;
-  }
-  .about-donate::before,
-  .about-donate::after {
-    content: '';
-    position: absolute;
-    width: 56px;
-    height: 56px;
-    border-color: rgba(196,160,80,0.35);
-    border-style: solid;
-  }
-  .about-donate::before { top: 10px; left: 10px; border-width: 1px 0 0 1px; border-radius: 4px 0 0 0; }
-  .about-donate::after  { bottom: 10px; right: 10px; border-width: 0 1px 1px 0; border-radius: 0 0 4px 0; }
-  .donate-crown {
-    font-size: 2rem; line-height: 1;
-    filter: drop-shadow(0 0 10px rgba(196,160,80,0.6));
-    animation: donate-pulse 3s ease-in-out infinite;
-  }
-  @keyframes donate-pulse {
-    0%, 100% { filter: drop-shadow(0 0 8px rgba(196,160,80,0.5));  transform: translateY(0); }
-    50%       { filter: drop-shadow(0 0 18px rgba(196,160,80,0.9)); transform: translateY(-3px); }
-  }
-  .donate-eyebrow {
-    font-family: 'Cormorant SC', serif; font-size: 0.62rem;
-    letter-spacing: 0.22em; color: rgba(196,160,80,0.7); text-transform: uppercase; margin-bottom: -0.2rem;
-  }
-  .donate-title {
-    font-family: 'Cormorant SC', serif; font-size: 1.35rem; font-weight: 600;
-    color: #e8cc80; letter-spacing: 0.04em; line-height: 1.2;
-  }
-  .donate-rule { width: 48px; height: 1px; background: linear-gradient(90deg, transparent, rgba(196,160,80,0.6), transparent); margin: 0.15rem 0 0.1rem; }
-  .donate-desc { font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 300; color: rgba(220,205,175,0.82); line-height: 1.65; max-width: 420px; }
-  .donate-desc strong { color: rgba(220,205,175,1); font-weight: 500; }
-  .btn-donate {
-    display: inline-flex; align-items: center; gap: 0.55rem; margin-top: 0.55rem;
-    padding: 0.72rem 1.8rem; border-radius: 8px;
-    background: linear-gradient(135deg, #b8901e 0%, #d4a830 50%, #c09520 100%);
-    color: #1a1208; font-family: 'Cormorant SC', serif; font-size: 0.95rem;
-    font-weight: 600; letter-spacing: 0.06em; text-decoration: none; border: none; cursor: pointer;
-    box-shadow: 0 2px 12px rgba(196,160,80,0.4), 0 1px 3px rgba(0,0,0,0.4);
-    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-    position: relative; overflow: hidden;
-  }
-  .btn-donate::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 60%); pointer-events: none; }
-  .btn-donate:hover  { transform: translateY(-2px); box-shadow: 0 4px 22px rgba(196,160,80,0.55), 0 2px 6px rgba(0,0,0,0.4); filter: brightness(1.06); }
-  .btn-donate:active { transform: translateY(0); filter: brightness(0.96); }
-  .btn-donate svg    { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
-  .donate-note { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: rgba(196,160,80,0.45); letter-spacing: 0.02em; }
-
   /* ── Rankings Donate Strip ─────────────────────────────────────────────────── */
   .rankings-donate-strip {
     margin-top: 2rem; border-radius: 10px;
@@ -136,17 +70,10 @@
   .btn-donate-small svg    { width: 12px; height: 12px; fill: currentColor; flex-shrink: 0; }
 </style>
 
-<!--
-  app.js is loaded with a timestamp query string so browsers never cache a stale version.
-  We use type="module" so ES module syntax (import/export) works.
-  We do NOT use type="module" here because app.js uses global window assignments
-  for inline HTML onclick handlers — so it's a regular script.
--->
 <script>
   (function () {
     var s   = document.createElement('script');
     s.src   = 'app.js?v=' + Date.now();
-    // defer so the DOM is ready when app.js runs
     s.defer = true;
     document.head.appendChild(s);
   })();
@@ -249,12 +176,6 @@
     <!-- Vote action area -->
     <div class="vote-action">
 
-      <!--
-        Cloudflare Turnstile CAPTCHA widget.
-        The JS in app.js calls turnstile.render('#turnstile-container', …)
-        when the vote tab is first opened.
-        The token is retrieved with turnstile.getResponse() at vote submit time.
-      -->
       <div class="turnstile-wrap">
         <div id="turnstile-container"></div>
       </div>
@@ -305,10 +226,10 @@
         <div class="about-join-desc">
           Are you a TikTok prince/princess — or do you know one who deserves a spot?
           Reach out and we'll add them to the poll.<br>
-          DM <strong>GIIS</strong> on TikTok to get added. (you can expect a small fee)
+          DM <strong>@royalmog6</strong> on TikTok to submit. (a small fee may apply)
         </div>
       </div>
-      <a class="btn-tiktok" href="https://www.tiktok.com/@giis6830"
+      <a class="btn-tiktok" href="https://www.tiktok.com/@royalmog6"
          target="_blank" rel="noopener noreferrer">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5
@@ -316,32 +237,8 @@
                    6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34
                    0 0 0 6.33-6.34V8.95a8.27 8.27 0 0 0 4.84 1.55V7.05a4.85 4.85 0 0 1-1.07-.36z"/>
         </svg>
-        @giis6830
+        @royalmog6
       </a>
-    </div>
-
-    <!-- Donation block -->
-    <div class="about-donate">
-      <div class="donate-crown">♛</div>
-      <div class="donate-eyebrow">Support the Court</div>
-      <div class="donate-title">Keep the Crown Alive</div>
-      <div class="donate-rule"></div>
-      <p class="donate-desc">
-        RoyalMog runs entirely on passion — and a bit of server budget. Your support helps
-        keep the rankings live, the updates rolling, and the court growing.
-        <strong>Every contribution, however small, keeps the kingdom standing.</strong>
-      </p>
-      <a class="btn-donate"
-         href="https://whydonate.com/nl/fundraising/royalmog-donations"
-         target="_blank" rel="noopener noreferrer">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5 2 5.41 4.42 3 7.5 3c1.74 0
-                   3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5c0 3.77-3.4
-                   6.86-8.55 11.53L12 21.35z"/>
-        </svg>
-        Donate to RoyalMog
-      </a>
-      <div class="donate-note">Opens whydonate.com · No account required</div>
     </div>
 
     <!-- Update log -->
@@ -354,14 +251,12 @@
         <div class="log-dot"></div>
         <div class="log-body">
           <div class="log-version">v2.0</div>
-          <div class="log-title">Security Overhaul — Cloudflare Architecture</div>
+          <div class="log-title">Security Overhaul</div>
           <ul class="log-items">
-            <li>Completely removed Firebase — votes no longer stored in the browser-accessible cloud</li>
-            <li>New Cloudflare Worker API handles all vote logic server-side</li>
-            <li>Votes stored in Cloudflare D1 — a real SQL database with no public access</li>
-            <li>Cloudflare Turnstile CAPTCHA added — bots can no longer vote automatically</li>
-            <li>Server-side IP rate limiting — the 24-hour cooldown is now enforced on the server</li>
-            <li>IPs are hashed (SHA-256 + salt) before storage — we never log raw IP addresses</li>
+            <li>Complete backend security rewrite — votes are now handled server-side</li>
+            <li>CAPTCHA added to prevent automated voting</li>
+            <li>Server-side rate limiting — the 24-hour cooldown is now enforced on the server</li>
+            <li>IP addresses are hashed before storage — we never log raw IP addresses</li>
           </ul>
         </div>
       </div>
@@ -373,8 +268,8 @@
           <div class="log-version">v1.4</div>
           <div class="log-title">Cache-Busting Fix</div>
           <ul class="log-items">
-            <li>app.js now loads with a unique timestamp every visit — browsers can no longer serve stale versions</li>
-            <li>Version check against /version.txt triggers an automatic hard reload when a new deploy is detected</li>
+            <li>Browsers now always load the latest version of the app — no more stale pages</li>
+            <li>Automatic reload triggered when a new update is detected</li>
           </ul>
         </div>
       </div>
@@ -386,8 +281,8 @@
           <div class="log-version">v1.3</div>
           <div class="log-title">Security &amp; Cache Improvements</div>
           <ul class="log-items">
-            <li>Added server-side vote validation via Firestore Security Rules</li>
-            <li>Anomaly detector: unusual vote spikes are logged and flagged</li>
+            <li>Added server-side vote validation</li>
+            <li>Anomaly detector: unusual vote spikes are flagged automatically</li>
             <li>Fixed caching issue — new royals now always appear immediately</li>
           </ul>
         </div>
@@ -428,7 +323,7 @@
           <div class="log-title">RoyalMog Launch 🎉</div>
           <ul class="log-items">
             <li>Initial launch of RoyalMog — the TikTok royal popularity poll</li>
-            <li>Live vote rankings with real-time database</li>
+            <li>Live vote rankings with real-time updates</li>
             <li>Voting grid with search, 24-hour cooldown, and countdown timer</li>
             <li>Podium display for the top three royals</li>
           </ul>
