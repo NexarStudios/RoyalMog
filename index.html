@@ -35,7 +35,6 @@
 
 <style>
   /* ── Turnstile CAPTCHA container ──────────────────────────────────────────── */
-  /* Placed above the vote button in the vote panel. */
   .turnstile-wrap {
     display: flex;
     justify-content: center;
@@ -68,6 +67,326 @@
   .btn-donate-small:hover  { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(196,160,80,0.5); filter: brightness(1.07); }
   .btn-donate-small:active { transform: translateY(0); filter: brightness(0.95); }
   .btn-donate-small svg    { width: 12px; height: 12px; fill: currentColor; flex-shrink: 0; }
+
+  /* ── Suggestions Mid-List Button ───────────────────────────────────────────── */
+  /*
+   * USAGE IN app.js (inside renderRankings()):
+   * After rendering the 10th ranking item, inject:
+   *   document.getElementById('rankings-content').insertAdjacentHTML(
+   *     'beforeend', document.getElementById('suggestions-strip-template').innerHTML
+   *   );
+   * Then continue rendering items 11+.
+   *
+   * Or simply call: injectSuggestionsStrip() after item 10 is added to the DOM.
+   */
+  .suggestions-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    margin: 0.6rem 0;
+    padding: 0.7rem 1rem 0.7rem 1.1rem;
+    border-radius: 8px;
+    background: rgba(196,160,80,0.04);
+    border: 1px solid rgba(196,160,80,0.13);
+    border-left: 2px solid rgba(196,160,80,0.35);
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .suggestions-strip:hover {
+    background: rgba(196,160,80,0.07);
+    border-color: rgba(196,160,80,0.22);
+    border-left-color: rgba(196,160,80,0.55);
+  }
+  .suggestions-strip-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .suggestions-strip-title {
+    font-family: 'Cormorant SC', serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #c8a84a;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+  }
+  .suggestions-strip-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 300;
+    color: rgba(220,205,175,0.45);
+    margin-top: 0.1rem;
+    line-height: 1.35;
+  }
+  .btn-suggest {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.38rem 0.85rem;
+    border-radius: 5px;
+    background: transparent;
+    border: 1px solid rgba(196,160,80,0.35);
+    color: #c8a84a;
+    font-family: 'Cormorant SC', serif;
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.15s ease;
+  }
+  .btn-suggest:hover {
+    background: rgba(196,160,80,0.12);
+    border-color: rgba(196,160,80,0.6);
+    color: #e8cc80;
+    transform: translateY(-1px);
+  }
+  .btn-suggest:active {
+    transform: translateY(0);
+  }
+  .btn-suggest svg {
+    width: 11px;
+    height: 11px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    flex-shrink: 0;
+  }
+
+  /* ── Suggestions Modal Overlay ─────────────────────────────────────────────── */
+  .suggestions-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(10, 7, 3, 0.82);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .suggestions-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .suggestions-modal {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 12px;
+    background: linear-gradient(160deg, #1c1408 0%, #211808 60%, #1a1208 100%);
+    border: 1px solid rgba(196,160,80,0.22);
+    box-shadow:
+      0 8px 40px rgba(0,0,0,0.7),
+      0 0 0 1px rgba(196,160,80,0.06) inset,
+      0 1px 0 rgba(196,160,80,0.15) inset;
+    padding: 1.75rem 1.6rem 1.6rem;
+    transform: translateY(12px) scale(0.97);
+    transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+    opacity: 0;
+  }
+  .suggestions-overlay.open .suggestions-modal {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+
+  /* Decorative top line */
+  .suggestions-modal::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(196,160,80,0.5), transparent);
+    border-radius: 1px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 0.9rem; right: 0.9rem;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(196,160,80,0.07);
+    border: 1px solid rgba(196,160,80,0.15);
+    border-radius: 50%;
+    color: rgba(220,205,175,0.5);
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .modal-close:hover {
+    background: rgba(196,160,80,0.14);
+    border-color: rgba(196,160,80,0.35);
+    color: #c8a84a;
+  }
+
+  .modal-crown {
+    font-size: 1.4rem;
+    line-height: 1;
+    margin-bottom: 0.6rem;
+    filter: drop-shadow(0 0 8px rgba(196,160,80,0.5));
+  }
+  .modal-title {
+    font-family: 'Cormorant SC', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #e8cc80;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+  }
+  .modal-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 300;
+    color: rgba(220,205,175,0.5);
+    line-height: 1.5;
+    margin-bottom: 1.3rem;
+  }
+
+  .modal-form-group {
+    margin-bottom: 0.9rem;
+  }
+  .modal-label {
+    display: block;
+    font-family: 'Cormorant SC', serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: rgba(196,160,80,0.7);
+    letter-spacing: 0.06em;
+    margin-bottom: 0.35rem;
+  }
+  .modal-label span {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.65rem;
+    color: rgba(220,205,175,0.3);
+    font-weight: 300;
+    letter-spacing: 0;
+    margin-left: 0.3rem;
+  }
+
+  .modal-input,
+  .modal-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(196,160,80,0.18);
+    border-radius: 7px;
+    padding: 0.6rem 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: rgba(220,205,175,0.9);
+    outline: none;
+    transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    resize: none;
+  }
+  .modal-input::placeholder,
+  .modal-textarea::placeholder {
+    color: rgba(220,205,175,0.22);
+  }
+  .modal-input:focus,
+  .modal-textarea:focus {
+    border-color: rgba(196,160,80,0.45);
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 0 0 3px rgba(196,160,80,0.07);
+  }
+  .modal-textarea {
+    min-height: 90px;
+    max-height: 160px;
+  }
+
+  .modal-char-count {
+    text-align: right;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.63rem;
+    font-weight: 300;
+    color: rgba(220,205,175,0.25);
+    margin-top: 0.2rem;
+    transition: color 0.15s ease;
+  }
+  .modal-char-count.warn { color: rgba(220,150,80,0.6); }
+
+  .btn-modal-submit {
+    width: 100%;
+    margin-top: 0.3rem;
+    padding: 0.7rem 1rem;
+    border-radius: 7px;
+    background: linear-gradient(135deg, #b8901e 0%, #d4a830 50%, #c09520 100%);
+    color: #1a1208;
+    font-family: 'Cormorant SC', serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(196,160,80,0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+  }
+  .btn-modal-submit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 55%);
+    pointer-events: none;
+  }
+  .btn-modal-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 18px rgba(196,160,80,0.45);
+    filter: brightness(1.06);
+  }
+  .btn-modal-submit:active:not(:disabled) {
+    transform: translateY(0);
+    filter: brightness(0.95);
+  }
+  .btn-modal-submit:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* Success state */
+  .modal-success {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem 0 0.5rem;
+  }
+  .modal-success.visible { display: flex; }
+  .modal-success-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.7rem;
+    animation: successBounce 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes successBounce {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .modal-success-title {
+    font-family: 'Cormorant SC', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #e8cc80;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.3rem;
+  }
+  .modal-success-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 300;
+    color: rgba(220,205,175,0.5);
+    line-height: 1.5;
+  }
+
+  .modal-form-body { transition: opacity 0.2s ease; }
+  .modal-form-body.hidden { opacity: 0; pointer-events: none; position: absolute; }
 </style>
 
 <script>
@@ -115,7 +434,33 @@
       <span class="section-meta" id="total-label">— votes cast</span>
     </div>
 
-    <!-- Rankings are injected here by renderRankings() in app.js -->
+    <!--
+      Rankings are injected here by renderRankings() in app.js.
+
+      ════════════════════════════════════════════════════════════════
+      HOW TO INJECT THE SUGGESTIONS STRIP (in app.js):
+      ════════════════════════════════════════════════════════════════
+      After rendering the 10th item, call:
+
+        injectSuggestionsStrip();
+
+      This function is defined in the <script> block at the bottom
+      of this file and inserts the suggestions strip into the rankings
+      list between items 10 and 11.
+
+      Alternatively, insert this HTML string directly after item 10:
+
+        '<div class="suggestions-strip" ...'
+        (see the #suggestions-strip-template hidden template below)
+
+      The simplest approach in app.js renderRankings():
+
+        candidates.forEach((c, i) => {
+          rankingsContainer.appendChild( buildRankItem(c, i+1) );
+          if (i === 9) injectSuggestionsStrip(); // after item 10
+        });
+      ════════════════════════════════════════════════════════════════
+    -->
     <div id="rankings-content">
       <div class="loading-state">
         <div class="spinner"></div>
@@ -348,6 +693,229 @@
 </div><!-- /panels -->
 
 <div class="toast" id="toast"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SUGGESTIONS STRIP TEMPLATE
+     This hidden template is cloned by injectSuggestionsStrip() below.
+     Do not remove it.
+══════════════════════════════════════════════════════════════════════════ -->
+<template id="suggestions-strip-template">
+  <div class="suggestions-strip" role="complementary" aria-label="Leave a suggestion">
+    <div class="suggestions-strip-text">
+      <div class="suggestions-strip-title">Have a Suggestion?</div>
+      <div class="suggestions-strip-sub">Help us improve the court</div>
+    </div>
+    <button class="btn-suggest" onclick="openSuggestionsModal()" aria-label="Open suggestions form">
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M10 2C5.58 2 2 5.13 2 9c0 2.1 1.01 3.99 2.62 5.33L4 17l2.88-1.44A8.36 8.36 0 0 0 10 16c4.42 0 8-3.13 8-7s-3.58-7-8-7z" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      Share Feedback
+    </button>
+  </div>
+</template>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SUGGESTIONS MODAL OVERLAY
+══════════════════════════════════════════════════════════════════════════ -->
+<div class="suggestions-overlay" id="suggestions-overlay"
+     role="dialog" aria-modal="true" aria-labelledby="modal-title"
+     onclick="handleOverlayClick(event)">
+
+  <div class="suggestions-modal" id="suggestions-modal">
+
+    <button class="modal-close" onclick="closeSuggestionsModal()"
+            aria-label="Close suggestions form">✕</button>
+
+    <!-- Form body -->
+    <div class="modal-form-body" id="modal-form-body">
+      <div class="modal-crown" aria-hidden="true">✦</div>
+      <div class="modal-title" id="modal-title">Leave a Suggestion</div>
+      <p class="modal-sub">Have an idea, request, or feedback? Let us know — we read every message.</p>
+
+      <div class="modal-form-group">
+        <label class="modal-label" for="suggest-message">
+          Your Message
+        </label>
+        <textarea
+          class="modal-textarea"
+          id="suggest-message"
+          name="message"
+          placeholder="Share your idea or feedback…"
+          maxlength="1000"
+          oninput="updateCharCount()"
+          required></textarea>
+        <div class="modal-char-count" id="char-count">0 / 1000</div>
+      </div>
+
+      <div class="modal-form-group">
+        <label class="modal-label" for="suggest-email">
+          Email <span>(optional — only if you'd like a reply)</span>
+        </label>
+        <input
+          class="modal-input"
+          type="email"
+          id="suggest-email"
+          name="email"
+          placeholder="your@email.com"
+          autocomplete="email">
+      </div>
+
+      <button class="btn-modal-submit" id="modal-submit-btn" onclick="submitSuggestion()">
+        Send to the Court
+      </button>
+    </div>
+
+    <!-- Success state (shown after submit) -->
+    <div class="modal-success" id="modal-success" aria-live="polite">
+      <div class="modal-success-icon" aria-hidden="true">✦</div>
+      <div class="modal-success-title">Message Received</div>
+      <p class="modal-success-text">
+        Your suggestion has reached the court.<br>
+        Thank you for helping shape RoyalMog.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SUGGESTIONS MODAL SCRIPT
+══════════════════════════════════════════════════════════════════════════ -->
+<script>
+  /* ── Inject the suggestions strip between ranking items 10 and 11 ──────────
+   *
+   * Call this from app.js inside renderRankings() after the 10th item:
+   *
+   *   if (i === 9) injectSuggestionsStrip();
+   *
+   * It inserts a clone of #suggestions-strip-template into #rankings-content.
+   * Safe to call multiple times — it won't duplicate the strip.
+   * ────────────────────────────────────────────────────────────────────────── */
+  function injectSuggestionsStrip() {
+    var container = document.getElementById('rankings-content');
+    if (!container) return;
+    if (container.querySelector('.suggestions-strip')) return; // already injected
+
+    var template = document.getElementById('suggestions-strip-template');
+    if (!template) return;
+
+    var clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+  }
+
+  /* ── Modal open / close ──────────────────────────────────────────────────── */
+  function openSuggestionsModal() {
+    var overlay = document.getElementById('suggestions-overlay');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Focus the textarea for accessibility
+    setTimeout(function () {
+      var ta = document.getElementById('suggest-message');
+      if (ta) ta.focus();
+    }, 280);
+  }
+
+  function closeSuggestionsModal() {
+    var overlay = document.getElementById('suggestions-overlay');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function handleOverlayClick(e) {
+    // Close when clicking the dark backdrop, not the modal card itself
+    if (e.target === document.getElementById('suggestions-overlay')) {
+      closeSuggestionsModal();
+    }
+  }
+
+  // Close on Escape key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      var overlay = document.getElementById('suggestions-overlay');
+      if (overlay && overlay.classList.contains('open')) {
+        closeSuggestionsModal();
+      }
+    }
+  });
+
+  /* ── Character counter ───────────────────────────────────────────────────── */
+  function updateCharCount() {
+    var ta    = document.getElementById('suggest-message');
+    var label = document.getElementById('char-count');
+    if (!ta || !label) return;
+    var len = ta.value.length;
+    label.textContent = len + ' / 1000';
+    label.classList.toggle('warn', len > 850);
+  }
+
+  /* ── Form submission via Web3Forms ───────────────────────────────────────── */
+  function submitSuggestion() {
+    var messageEl = document.getElementById('suggest-message');
+    var emailEl   = document.getElementById('suggest-email');
+    var submitBtn = document.getElementById('modal-submit-btn');
+
+    if (!messageEl || !messageEl.value.trim()) {
+      messageEl.focus();
+      messageEl.style.borderColor = 'rgba(220,100,80,0.55)';
+      setTimeout(function () {
+        messageEl.style.borderColor = '';
+      }, 1800);
+      return;
+    }
+
+    var formData = new FormData();
+    formData.append('access_key', '621527e5-47a2-466d-8c10-90a569d40e7a');
+    formData.append('subject',    'RoyalMog — New Suggestion');
+    formData.append('message',    messageEl.value.trim());
+    if (emailEl && emailEl.value.trim()) {
+      formData.append('email', emailEl.value.trim());
+    }
+
+    var original = submitBtn.textContent;
+    submitBtn.textContent = 'Sending…';
+    submitBtn.disabled = true;
+
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      body: formData
+    })
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (data.success) {
+        // Show success state
+        document.getElementById('modal-form-body').style.display = 'none';
+        document.getElementById('modal-success').classList.add('visible');
+
+        // Reset & auto-close after 3 s
+        setTimeout(function () {
+          closeSuggestionsModal();
+          setTimeout(function () {
+            document.getElementById('modal-form-body').style.display = '';
+            document.getElementById('modal-success').classList.remove('visible');
+            if (messageEl) messageEl.value = '';
+            if (emailEl)   emailEl.value   = '';
+            updateCharCount();
+            submitBtn.textContent = original;
+            submitBtn.disabled    = false;
+          }, 400);
+        }, 3000);
+      } else {
+        submitBtn.textContent = original;
+        submitBtn.disabled    = false;
+        alert('Something went wrong: ' + (data.message || 'Please try again.'));
+      }
+    })
+    .catch(function () {
+      submitBtn.textContent = original;
+      submitBtn.disabled    = false;
+      alert('Something went wrong. Please try again.');
+    });
+  }
+</script>
 
 </body>
 </html>
