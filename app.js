@@ -54,6 +54,8 @@ const PRINCES = [
   { id: 'malta',         name: 'Malta',        tiktok: '@denilsonzammit' },
   { id: 'bosnia',        name: 'Bosnia',       tiktok: '@melvin_vem_annars' },
   { id: 'england',       name: 'England',      tiktok: '@princeofengland8' },
+  { id: '2010',        name: '2010',       tiktok: '@true.prince.of.hungary' },
+  { id: 'madagascar',       name: 'Madagascar',      tiktok: '@princeoffmadagascar' },
 ];
 
 const PRINCESSES = [
@@ -68,6 +70,7 @@ const PRINCESSES = [
   { id: 'p_sweden#2',       name: 'Sweden',        tiktok: '@livfrandegard' },
   { id: 'p_greece',         name: 'Greece',        tiktok: '@princessofgreece_' },
   { id: 'p_portugal',       name: 'Portugal',      tiktok: '@raquelbtw' },
+  { id: 'p_germany#2',       name: 'Germany',      tiktok: '@noa.tlz' },
 ];
 
 // ─── Derived constants ────────────────────────────────────────────────────────
