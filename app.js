@@ -45,7 +45,7 @@ const PRINCES = [
   { id: 'baronen',       name: 'Baronen',      tiktok: '@realbaronen' },
   { id: 'schweiz',       name: 'Schweiz',      tiktok: '@posbackup' },
   { id: 'baltzar',       name: 'Baltzar',      tiktok: '@baltzar.1' },
-  { id: 'switserland#2', name: 'Switserland',  tiktok: '@theprinceofswitzerland' },
+  { id: 'switserland#2', name: 'Switzerland',  tiktok: '@theprinceofswitzerland' },
   { id: 'hungary',       name: 'Hungary',      tiktok: '@kobold.exee' },
   { id: 'india',         name: 'India',        tiktok: '@iblamebilall' },
   { id: 'ireland',       name: 'Ireland',      tiktok: '@prince_irelandtt' },
