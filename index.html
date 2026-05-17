@@ -68,6 +68,68 @@
   .btn-donate-small:hover  { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(196,160,80,0.5); filter: brightness(1.07); }
   .btn-donate-small:active { transform: translateY(0); filter: brightness(0.95); }
   .btn-donate-small svg    { width: 12px; height: 12px; fill: currentColor; flex-shrink: 0; }
+
+  /* ── Announcement Banner ───────────────────────────────────────────────────── */
+  .announcement-banner {
+    position: relative;
+    background: linear-gradient(100deg, #0f0b04 0%, #1a1208 40%, #0f0b04 100%);
+    border-bottom: 1px solid rgba(196,160,80,0.18);
+    padding: 0.6rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+  .announcement-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(196,160,80,0.04) 50%, transparent 100%);
+    pointer-events: none;
+  }
+  .ann-pip {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #c4a050;
+    box-shadow: 0 0 6px rgba(196,160,80,0.7);
+    flex-shrink: 0;
+    animation: ann-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes ann-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(196,160,80,0.7); }
+    50%       { opacity: 0.55; box-shadow: 0 0 3px rgba(196,160,80,0.3); }
+  }
+  .ann-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 300;
+    color: rgba(220,205,175,0.72);
+    letter-spacing: 0.015em;
+    line-height: 1.5;
+  }
+  .ann-text strong {
+    font-weight: 500;
+    color: #ddc98a;
+  }
+  .ann-link {
+    font-family: 'Cormorant SC', serif;
+    font-size: 0.73rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #c4a050;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(196,160,80,0.35);
+    padding-bottom: 1px;
+    white-space: nowrap;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .ann-link:hover { color: #e8cc80; border-color: rgba(232,204,128,0.6); }
+  .ann-divider {
+    color: rgba(196,160,80,0.3);
+    font-size: 0.65rem;
+    flex-shrink: 0;
+  }
 </style>
 
 <script>
@@ -80,6 +142,19 @@
 </script>
 </head>
 <body>
+
+<!-- ── Announcement Banner ─────────────────────────────────────────────────── -->
+<div class="announcement-banner">
+  <div class="ann-pip"></div>
+  <span class="ann-text">
+    <strong>Coming Soon —</strong> MogRank: a new rankings site for the broader mogger community.
+    Want to be featured?
+  </span>
+  <span class="ann-divider">·</span>
+  <a class="ann-link"
+     href="https://www.tiktok.com/@royalmog6"
+     target="_blank" rel="noopener noreferrer">DM @royalmog6 on TikTok</a>
+</div>
 
 <div class="glow-1"></div>
 <div class="glow-2"></div>
